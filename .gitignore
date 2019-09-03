@@ -1,0 +1,15 @@
+.pytest_cache/
+.idea/
+bin/
+build/
+dist/
+htmlcov/
+include/
+lib/
+python_ranges.egg-info/
+.coverage
+.DS_Store
+pip-selfcheck.json
+pyvenv.cfg
+
+**.pyc
