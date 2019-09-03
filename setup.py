@@ -5,7 +5,7 @@ with open("readme.md", "r") as fh:
 
 setuptools.setup(
     name="python-ranges",
-    version="0.1.1",
+    version="0.1.2",
     author="Louis Jacobowitz",
     author_email="ldjacobowitzer@gmail.com",
     description="Continuous Range, RangeSet, and RangeDict data structures",
@@ -18,5 +18,9 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    project_urls={
+        'Documentation': 'https://python-ranges.readthedocs.io/en/latest/',
+        'GitHub': 'https://github.com/Superbird11/ranges',
+    },
     python_requires='>=3.6',
 )
