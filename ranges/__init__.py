@@ -1,5 +1,6 @@
 """
-The `ranges` module contains the data structures Range, RangeSet, and RangeDict.
+The `ranges` module contains the data structures Range, RangeSet,
+and RangeDict.
 
 See http://pypi.org/project/python-ranges for information.
 

@@ -77,9 +77,10 @@ class Range:
 
         or any other comparable type.
 
-        By default, the start of a range (`include_start`) will be inclusive, and
-        the end of a range (`include_end`) will be exclusive. User-given values for
-        `include_start` and `include_end` will override these defaults.
+        By default, the start of a range (`include_start`) will be inclusive,
+        and the end of a range (`include_end`) will be exclusive. User-given
+        values for `include_start` and `include_end` will override these
+        defaults.
 
         The Range data structure uses a special notion of "infinity" that works
         with all types, not just numeric ones. This allows for endless ranges
@@ -96,22 +97,23 @@ class Range:
         >>> print(datetime.date(1975, 3, 14) in q)  # True
         >>> print(None in q)  # True
 
-        Although, for numeric types, infinity automatically conforms to the mathematical
-        infinity of IEEE 754:
+        Although, for numeric types, infinity automatically conforms to the
+        mathematical infinity of IEEE 754:
 
         >>> print(float('nan') in q)  # False
 
-        Mathematically, infinity and negative infinity would always be exclusive.
-        However, since they are defined values in the floating-point standard, they
-        follow the same rules here as any other value, with regard to inclusivity or
-        exclusivity in Range objects:
+        Mathematically, infinity and negative infinity would always be
+        exclusive. However, since they are defined values in the floating-
+        point standard, they follow the same rules here as any other value,
+        with regard to inclusivity or exclusivity in Range objects:
 
         >>> r = Range(include_start=True, include_end=False)
         >>> print(r)  # [-inf, inf)
         >>> print(float('-inf') in r)  # True
         >>> print(float('inf') in r)  # False
 
-        The Range class is hashable, meaning it can be used as the key in a dict.
+        The Range class is hashable, meaning it can be used as the key in a
+        `dict`.
     """
 
     def __init__(self, *args, **kwargs):
@@ -201,7 +203,8 @@ class Range:
 
     def isdisjoint(self, rng):
         """
-        returns `False` if this range overlaps with the given range, and `True` otherwise.
+        returns `False` if this range overlaps with the given range,
+        and `True` otherwise.
         """
         # if RangeSet, return that instead
         if isinstance(rng, RangeSet):
@@ -222,8 +225,8 @@ class Range:
 
     def union(self, rng):
         """
-        If this Range and the given Range overlap, then returns a Range that encompasses
-        both of them.
+        If this Range and the given Range overlap, then returns a Range that
+        encompasses both of them.
 
         Returns `None` if the ranges don't overlap (if you need to, you can
         simply put both this Range and the given Range into a RangeSet).
@@ -251,8 +254,8 @@ class Range:
 
     def intersection(self, rng):
         """
-        Returns a range representing the intersection between this range and the given range,
-        or `None` if the ranges don't overlap at all.
+        Returns a range representing the intersection between this range and
+        the given range, or `None` if the ranges don't overlap at all.
 
         If the given range is actually a RangeSet, then returns a RangeSet.
         """
@@ -286,16 +289,18 @@ class Range:
 
     def difference(self, rng):
         """
-        Returns a range containing all elements of this range that are not within the
-        other range, or `None` if this range is entirely consumed by the other range.
+        Returns a range containing all elements of this range that are not
+        within the other range, or `None` if this range is entirely consumed
+        by the other range.
 
-        If the other range is empty, or if this Range is entirely disjoint with it,
-        then returns this Range (not a copy of this Range).
+        If the other range is empty, or if this Range is entirely disjoint
+        with it, then returns this Range (not a copy of this Range).
 
-        If the other range is entirely consumed by this range, then returns a RangeSet
-        of `(lower_part, higher_part)`.
+        If the other range is entirely consumed by this range, then returns
+        a RangeSet containing `(lower_part, higher_part)`.
 
-        If the given range is actually a RangeSet, then returns a RangeSet no matter what.
+        If the given range is actually a RangeSet, then returns a RangeSet
+        no matter what.
         """
         # if a RangeSet, then return the intersection of one of those with this instead.
         if isinstance(rng, RangeSet):
@@ -340,12 +345,15 @@ class Range:
 
     def symmetric_difference(self, rng):
         """
-        Returns a Range (if possible) or RangeSet (if not) of ranges comprising the
-        parts of this Range and the given Range that do not overlap.
+        Returns a Range (if possible) or RangeSet (if not) of ranges
+        comprising the parts of this Range and the given Range that
+        do not overlap.
 
-        Returns `None` if the ranges overlap exactly (i.e. the symmetric difference is empty).
+        Returns `None` if the ranges overlap exactly (i.e. the symmetric
+        difference is empty).
 
-        If the given range is actually a RangeSet, then returns a RangeSet no matter what.
+        If the given range is actually a RangeSet, then returns a RangeSet
+        no matter what.
         """
         # if a RangeSet, then return the symmetric difference of one of those with this instead.
         if isinstance(rng, RangeSet):
@@ -381,8 +389,11 @@ class Range:
 
     def isempty(self):
         """
-        Returns `True` if this range is empty (it contains no values), and `False` otherwise.
-        In essence, will only return `True` if `start == end` and either end is exclusive.
+        Returns `True` if this range is empty (it contains no values), and
+        `False` otherwise.
+
+        In essence, will only return `True` if `start == end` and either end
+        is exclusive.
         """
         return self.start == self.end and (not self.include_start or not self.include_end)
 
@@ -392,18 +403,21 @@ class Range:
 
     def length(self):
         """
-        Returns the size of this range (`end - start`), irrespective of whether either end is inclusive.
+        Returns the size of this range (`end - start`), irrespective of whether
+        either end is inclusive.
 
-        If end and start are different types and are not naturally compatible for subtraction (e.g.
-        `float` and `Decimal`), then first tries to coerce `start` to `end`'s class, and if that doesn't work
-        tries to coerce `end` to `start`'s class.
+        If end and start are different types and are not naturally compatible
+        for subtraction (e.g. `float` and `Decimal`), then first tries to
+        coerce `start` to `end`'s class, and if that doesn't work then tries
+        to coerce `end` to `start`'s class.
 
-        Raises a `TypeError` if start and end are the same and not compatible for subtraction, or if
-        type coercion fails.
+        Raises a `TypeError` if start and end are the same and not compatible
+        for subtraction, or if type coercion fails.
 
-        Custom types used as Range endpoints are expected to raise `TypeError`, `ArithmeticError`, or
-        `ValueError` on failed subtraction. If not, whatever exception they raise will improperly
-        handled by this method, and will thus be raised instead.
+        Custom types used as Range endpoints are expected to raise `TypeError`,
+        `ArithmeticError`, or `ValueError` on failed subtraction. If not,
+        whatever exception they raise will improperly handled by this method,
+        and will thus be raised instead.
         """
         # try normally
         try:
@@ -437,8 +451,9 @@ class Range:
 
     def __eq__(self, obj):
         """
-        Compares the start and end of this range to the other range, along with inclusivity at
-        either end. Returns True if everything is the same, False otherwise.
+        Compares the start and end of this range to the other range, along with
+        inclusivity ateither end. Returns `True` if everything is the same, or
+        `False` otherwise.
         """
         if isinstance(obj, RangeSet):
             return obj == self
@@ -541,10 +556,14 @@ class Range:
 
     def __contains__(self, item):
         """
-        Returns True if the given item is inside the bounds of this range, False if it isn't.
-        If the given item isn't comparable to this object's start and end objects, then
-        tries to convert the item to a Range, and returns True if it is completely
-        contained within this range, False if it isn't.
+        Returns `True` if the given item is inside the bounds of this range,
+        `False` if it isn't.
+
+        If the given item isn't comparable to this object's start and end
+        objects, then tries to convert the item to a Range, and returns
+        `True` if it is completely contained within this range, `False`
+        if it isn't.
+
         A Range always contains itself.
         """
         if self == item:
@@ -758,9 +777,9 @@ class RangeSet(Iterable):
 
     def difference(self, rng_set):
         """
-        Return a new RangeSet containing the ranges that are in this RangeSet but
-        not in the other given RangeSet or list of RangeSets. This RangeSet is
-        not modified in the process.
+        Return a new RangeSet containing the ranges that are in this RangeSet
+        but not in the other given RangeSet or list of RangeSets. This
+        RangeSet is not modified in the process.
         """
         new_rng_set = self.copy()
         new_rng_set.difference_update(RangeSet(rng_set))
@@ -777,9 +796,10 @@ class RangeSet(Iterable):
 
     def intersection(self, rng_set):
         """
-        Returns a new RangeSet containing the intersection between this RangeSet and
-        the given Range or RangeSet - that is, containing only the elements shared
-        between this RangeSet and the given RangeSet.
+        Returns a new RangeSet containing the intersection between this
+        RangeSet and the given Range or RangeSet - that is, containing
+        only the elements shared between this RangeSet and the given
+        RangeSet.
         """
         # convert to a RangeSet
         rng_set = RangeSet._to_rangeset(rng_set)
@@ -791,9 +811,9 @@ class RangeSet(Iterable):
 
     def intersection_update(self, rng_set):
         """
-        Updates this RangeSet to contain only the intersections between this RangeSet and
-        the given Range or RangeSet, removing the parts of this RangeSet's ranges that
-        do not overlap the given RangeSet
+        Updates this RangeSet to contain only the intersections between
+        this RangeSet and the given Range or RangeSet, removing the parts
+        of this RangeSet's ranges that do not overlap the given RangeSet
         """
         self._ranges = self.intersection(rng_set)._ranges
 
@@ -809,8 +829,9 @@ class RangeSet(Iterable):
 
     def update(self, rng_set):
         """
-        Updates this RangeSet to add all the ranges in the given RangeSet, so that
-        this RangeSet now contains the union of its old self and the given RangeSet.
+        Updates this RangeSet to add all the ranges in the given RangeSet, so
+        that this RangeSet now contains the union of its old self and the
+        given RangeSet.
         """
         # convert to RangeSet
         rng_set = RangeSet._to_rangeset(rng_set)
@@ -819,9 +840,9 @@ class RangeSet(Iterable):
 
     def symmetric_difference(self, rng_set):
         """
-        Returns a new RangeSet containing the symmetric difference between this RangeSet
-        and the given Range or RangeSet - everything contained by this RangeSet or the
-        given RangeSet, but not both.
+        Returns a new RangeSet containing the symmetric difference between this
+        RangeSet  and the given Range or RangeSet - everything contained by
+        this RangeSet or the given RangeSet, but not both.
         """
         # convert to a RangeSet
         rng_set = RangeSet._to_rangeset(rng_set)
@@ -833,9 +854,9 @@ class RangeSet(Iterable):
 
     def symmetric_difference_update(self, rng_set):
         """
-        Update this RangeSet to contain the symmetric difference between it and the given Range
-        or RangeSet, by removing the parts of the given RangeSet that overlap with this RangeSet
-        from this RangeSet.
+        Update this RangeSet to contain the symmetric difference between it and
+        the given Range or RangeSet, by removing the parts of the given RangeSet
+        that overlap with this RangeSet from this RangeSet.
         """
         # the easiest way to do this is just to do regular symmetric_difference and then copy the result
         rng_set = RangeSet._to_rangeset(rng_set)
@@ -843,8 +864,8 @@ class RangeSet(Iterable):
 
     def isdisjoint(self, other):
         """
-        Returns `True` if there is no overlap between this RangeSet and the given
-        RangeSet.
+        Returns `True` if there is no overlap between this RangeSet and the
+        given RangeSet.
         """
         # convert to RangeSet
         other = RangeSet._to_rangeset(other)
@@ -854,9 +875,9 @@ class RangeSet(Iterable):
 
     def popempty(self):
         """
-        Removes all empty ranges from this RangeSet. This is mainly used internally
-        as a helper method, but can also be used deliberately (in which case it will
-        usually do nothing).
+        Removes all empty ranges from this RangeSet. This is mainly used
+        internally as a helper method, but can also be used deliberately
+        (in which case it will usually do nothing).
         """
         node = self._ranges.first
         while node:
@@ -868,7 +889,8 @@ class RangeSet(Iterable):
 
     def getrange(self, item):
         """
-        If the given item is in this RangeSet, returns the specific Range it's in.
+        If the given item is in this RangeSet, returns the specific Range it's
+        in.
 
         If the given item is a RangeSet or Iterable and is partly contained in
         multiple ranges, then returns a RangeSet with only those ranges that
@@ -982,8 +1004,9 @@ class RangeSet(Iterable):
 
     def __eq__(self, other):
         """
-        Returns True if this RangeSet's ranges exactly match the other RangeSet's ranges,
-        or if the given argument is a Range and this RangeSet contains only one identical Range
+        Returns True if this RangeSet's ranges exactly match the other
+        RangeSet's ranges, or if the given argument is a Range and this
+        RangeSet contains only one identical Range
         """
         if isinstance(other, RangeSet):
             return len(self._ranges) == len(other._ranges) and \
@@ -995,7 +1018,8 @@ class RangeSet(Iterable):
 
     def __lt__(self, other):
         """
-        Returns an ordering-based comparison based on the lowest ranges in self and other.
+        Returns an ordering-based comparison based on the lowest ranges in
+        self and other.
         """
         if isinstance(other, RangeSet):
             # return the first difference between this range and the next range
@@ -1011,7 +1035,8 @@ class RangeSet(Iterable):
 
     def __gt__(self, other):
         """
-        Returns an ordering-based comparison based on the lowest ranges in self and other.
+        Returns an ordering-based comparison based on the lowest ranges in
+        self and other.
         """
         if isinstance(other, RangeSet):
             # return the first difference between this range and the next range
@@ -1043,7 +1068,8 @@ class RangeSet(Iterable):
         return self.union(other)
 
     def __xor__(self, other):
-        """ returns (self ^ other), identical to self.symmetric_difference(other) """
+        """ returns (self ^ other), identical to
+        self.symmetric_difference(other) """
         return self.symmetric_difference(other)
 
     def __sub__(self, other):
@@ -1238,14 +1264,15 @@ class RangeDict:
 
     def add(self, rng, value):
         """
-        Add the single given Range/RangeSet to correspond to the given value. If the given
-        Range overlaps with a Range that is already contained within this RangeDict, then
-        the new range takes precedence.
+        Add the single given Range/RangeSet to correspond to the given value.
+        If the given Range overlaps with a Range that is already contained
+        within this RangeDict, then the new range takes precedence.
 
-        To add multiple Ranges of the same type, pack them into a RangeSet and pass that.
+        To add multiple Ranges of the same type, pack them into a RangeSet
+        and pass that.
 
-        To add a list of multiple Ranges of different types, use `.update()` instead.
-        Using this method instead will produce a `TypeError`.
+        To add a list of multiple Ranges of different types, use `.update()`
+        instead. Using this method instead will produce a `TypeError`.
 
         If an empty Range is given, then this method does nothing.
         """
@@ -1321,9 +1348,9 @@ class RangeDict:
 
     def update(self, iterable):
         """
-        Adds the contents of the given iterable (either another RangeDict, a dict
-        mapping Range-like objects to values, or a list of 2-tuples `(range-like, value)`)
-        to this RangeDict.
+        Adds the contents of the given iterable (either another RangeDict, a
+        `dict` mapping Range-like objects to values, or a list of 2-tuples
+        `(range-like, value)`) to this RangeDict.
         """
         # coerce to RangeDict and add that
         if not isinstance(iterable, RangeDict):
@@ -1334,22 +1361,26 @@ class RangeDict:
 
     def getitem(self, item):
         """
-        Returns both the value corresponding to the given item, the Range containing
-        it, and the set of other contiguous ranges that would have also yielded the same
-        value, as a 4-tuple `([RangeSet1, Rangeset2, ...], RangeSet, Range, value)`.
+        Returns both the value corresponding to the given item, the Range
+        containing it, and the set of other contiguous ranges that would
+        have also yielded the same value, as a 4-tuple
+        `([RangeSet1, Rangeset2, ...], RangeSet, Range, value)`.
 
         In reverse order, that is
           - the value corresponding to item
           - the single continuous range directly containing the item
-          - the RangeSet directly containing the item and corresponding to the value
-          - a list of all RangeSets (of various non-mutually-comparable types) that all correspond to the value.
-            Most of the time, this will be a single-element list, if only one type of Range is used in the
-            RangeDict. Otherwise, if ranges of multiple types (e.g. int ranges, string ranges) correspond to
-            the same value, this list will contain all of them.
+          - the RangeSet directly containing the item and corresponding
+            to the value
+          - a list of all RangeSets (of various non-mutually-comparable
+            types) that all correspond to the value. Most of the time,
+            this will be a single-element list, if only one type of Range
+            is used in the RangeDict. Otherwise, if ranges of multiple
+            types (e.g. int ranges, string ranges) correspond to the same
+            value, this list will contain all of them.
 
-        Using `.get()`, `.getrange()`, `.getrangeset()`, or `.getrangesets()` to isolate
-        just one of those return values is usually easier. This method is mainly used
-        internally.
+        Using `.get()`, `.getrange()`, `.getrangeset()`, or
+        `.getrangesets()` to isolate just one of those return values is
+        usually easier. This method is mainly used internally.
 
         Raises a `KeyError` if the desired item is not found.
         """
@@ -1369,12 +1400,14 @@ class RangeDict:
 
     def getrangesets(self, item):
         """
-        Finds the value to which the given item corresponds in this RangeDict, and then
-        returns a list of all RangeSets in this RangeDict that correspond to that value.
+        Finds the value to which the given item corresponds in this RangeDict,
+        and then returns a list of all RangeSets in this RangeDict that
+        correspond to that value.
 
-        Most of the time, this will be a single-element list, if only one type of Range
-        is used in the RangeDict. Otherwise, if ranges of multiple types (e.g. int ranges,
-        string ranges) correspond to the same value, this list will contain all of them.
+        Most of the time, this will be a single-element list, if only one
+        type of Range is used in the RangeDict. Otherwise, if ranges of
+        multiple types (e.g. int ranges, string ranges) correspond to the
+        same value, this list will contain all of them.
 
         Raises a `KeyError` if the given item is not found.
         """
@@ -1382,11 +1415,12 @@ class RangeDict:
 
     def getrangeset(self, item):
         """
-        Finds the value to which the given item corresponds in this RangeDict, and then
-        returns the RangeSet containing the given item that corresponds to that value.
+        Finds the value to which the given item corresponds in this RangeDict,
+        and then returns the RangeSet containing the given item that
+        corresponds to that value.
 
-        To find other RangeSets of other types that correspond to the same value, use
-        `.getrangesets()` instead.
+        To find other RangeSets of other types that correspond to the same
+        value, use `.getrangesets()` instead.
 
         Raises a `KeyError` if the given item is not found.
         """
@@ -1394,9 +1428,9 @@ class RangeDict:
 
     def getrange(self, item):
         """
-        Finds the value to which the given item corresponds in this RangeDict, and then
-        returns the single contiguous range containing the given item that corresponds
-        to that value.
+        Finds the value to which the given item corresponds in this RangeDict,
+        and then returns the single contiguous range containing the given item
+        that corresponds to that value.
 
         To find the RangeSet of all Ranges that correspond to that item,
         use `.getrangeset()` instead.
@@ -1407,11 +1441,12 @@ class RangeDict:
 
     def get(self, item, default=_sentinel):
         """
-        Returns the value corresponding to the given item, based on the most recently-added Range
-        containing it.
+        Returns the value corresponding to the given item, based on
+        the most recently-added Range containing it.
 
         The `default` argument is optional.
-        Like Python's built-in `dict`, if `default` is given, returns that if item is not found.
+        Like Python's built-in `dict`, if `default` is given, returns that if
+        `item` is not found.
         Otherwise, raises a `KeyError`.
         """
         try:
@@ -1425,8 +1460,8 @@ class RangeDict:
         """
         Returns the list of RangeSets corresponding to the given value.
 
-        Raises a `KeyError` if the given value is not corresponded to by any RangeSets
-        in this RangeDict.
+        Raises a `KeyError` if the given value is not corresponded to by
+        any RangeSets in this RangeDict.
         """
         try:
             return self._values[value]
@@ -1435,8 +1470,9 @@ class RangeDict:
 
     def set(self, item, new_value):
         """
-        Changes the value corresponding to the given `item` to the given `new_value`, such that
-        all ranges corresponding to the old value now correspond to the `new_value` instead.
+        Changes the value corresponding to the given `item` to the given
+        `new_value`, such that all ranges corresponding to the old value
+        now correspond to the `new_value` instead.
 
         Returns the original, overwritten value.
 
@@ -1450,8 +1486,8 @@ class RangeDict:
 
     def setvalue(self, old_value, new_value):
         """
-        Changes all ranges corresponding to the given `old_value` to correspond to the given
-        `new_value` instead.
+        Changes all ranges corresponding to the given `old_value` to correspond
+        to the given `new_value` instead.
 
         Raises a `KeyError` if the given `old_value` isn't found.
         """
@@ -1465,23 +1501,27 @@ class RangeDict:
     def popitem(self, item):
         """
         Returns the value corresponding to the given item, the Range containing
-        it, and the set of other contiguous ranges that would have also yielded the same
-        value, as a 4-tuple `([RangeSet1, Rangeset2, ...], RangeSet, Range, value)`.
+        it, and the set of other contiguous ranges that would have also yielded
+        the same value, as a 4-tuple
+        `([RangeSet1, Rangeset2, ...], RangeSet, Range, value)`.
 
         In reverse order, that is
           - the value corresponding to item
           - the single continuous range directly containing the item
-          - the RangeSet directly containing the item and corresponding to the value
-          - a list of all RangeSets (of various non-mutually-comparable types) that all correspond to the value.
-            Most of the time, this will be a single-element list, if only one type of Range is used in the
-            RangeDict. Otherwise, if ranges of multiple types (e.g. int ranges, string ranges) correspond to
-            the same value, this list will contain all of them.
+          - the RangeSet directly containing the item and corresponding to the
+            value
+          - a list of all RangeSets (of various non-mutually-comparable types)
+            that all correspond to the value. Most of the time, this will be a
+            single-element list, if only one type of Range is used in the
+            RangeDict. Otherwise, if ranges of multiple types (e.g. int ranges,
+            string ranges) correspond to the same value, this list will contain
+            all of them.
 
         Also removes all of the above from this RangeDict.
 
-        While this method is used a lot internally, it's usually easier to simply use
-        `.pop()`, `.poprange()`, `.poprangeset()`, or `.poprangesets()` to get the single
-        item of interest.
+        While this method is used a lot internally, it's usually easier to
+        simply use `.pop()`, `.poprange()`, `.poprangeset()`, or
+        `.poprangesets()` to get the single item of interest.
 
         Raises a KeyError if the desired item is not found.
         """
@@ -1507,11 +1547,13 @@ class RangeDict:
 
     def poprangesets(self, item):
         """
-        Finds the value to which the given item corresponds, and returns the list
-        of RangeSets that correspond to that value (see `.getrangesets()`).
+        Finds the value to which the given item corresponds, and returns the
+        list of RangeSets that correspond to that value (see
+        `.getrangesets()`).
 
-        Also removes the value, and all RangeSets from this RangeDict. To remove just
-        one range and leave the rest intact, use `.remove()` instead.
+        Also removes the value, and all RangeSets from this RangeDict. To
+        remove just one range and leave the rest intact, use `.remove()`
+        instead.
 
         Raises a `KeyError` if the given item is not found.
         """
@@ -1519,11 +1561,13 @@ class RangeDict:
 
     def poprangeset(self, item):
         """
-        Finds the value to which the given item corresponds in this RangeDict, and then
-        returns the RangeSet containing the given item that corresponds to that value.
+        Finds the value to which the given item corresponds in this RangeDict,
+        and then returns the RangeSet containing the given item that
+        corresponds to that value.
 
-        Also removes the value and all ranges that correspond to it from this RangeDict.
-        To remove just one range and leave the rest intact, use `.remove()` instead.
+        Also removes the value and all ranges that correspond to it from this
+        RangeDict. To remove just one range and leave the rest intact, use
+        `.remove()` instead.
 
         Raises a `KeyError` if the given item is not found.
         """
@@ -1531,12 +1575,13 @@ class RangeDict:
 
     def poprange(self, item):
         """
-        Finds the value to which the given item corresponds in this RangeDict, and then
-        returns the single contiguous range containing the given item that corresponds
-        to that value.
+        Finds the value to which the given item corresponds in this RangeDict,
+        and then returns the single contiguous range containing the given item
+        that corresponds to that value.
 
-        Also removes the value and all ranges that correspond to it from this RangeDict.
-        To remove just one range and leave the rest intact, use `.remove()` instead.
+        Also removes the value and all ranges that correspond to it from this
+        RangeDict. To remove just one range and leave the rest intact, use
+        `.remove()` instead.
 
         Raises a `KeyError` if the given item is not found.
         """
@@ -1544,12 +1589,13 @@ class RangeDict:
 
     def pop(self, item, default=_sentinel):
         """
-        Returns the value corresponding to the most recently-added range that contains the
-        given item. Also removes the returned value and all ranges corresponding to it from
-        this RangeDict.
+        Returns the value corresponding to the most recently-added range that
+        contains the given item. Also removes the returned value and all
+        ranges corresponding to it from this RangeDict.
 
-        The argument `default` is optional, just like in python's built-in `dict.pop()`.
-        if default is given, then if the item is not found, returns that instead.
+        The argument `default` is optional, just like in python's built-in
+        `dict.pop()`, if default is given, then if the item is not found,
+        returns that instead.
         Otherwise, raises a `KeyError`.
         """
         try:
@@ -1561,9 +1607,9 @@ class RangeDict:
 
     def popvalue(self, value):
         """
-        Removes all ranges corresponding to the given value from this RangeDict, as well as
-        the value itself. Returns a list of all the RangeSets of various types that corresponded to
-        the given value.
+        Removes all ranges corresponding to the given value from this RangeDict,
+        as well as the value itself. Returns a list of all the RangeSets of
+        various types that corresponded to the given value.
         """
         # find a RangeSet corresponding to the value, which we can use as a key
         sample_item = self._values[value][0]
@@ -1572,10 +1618,10 @@ class RangeDict:
 
     def popempty(self):
         """
-        Removes all empty ranges from this RangeDict, as well as all values that have no
-        corresponding ranges. The RangeDict calls this method on itself after most
-        operations that modify it, so calling it manually, while possible, will usually
-        do nothing.
+        Removes all empty ranges from this RangeDict, as well as all values
+        that have no corresponding ranges. The RangeDict calls this method on
+        itself after most operations that modify it, so calling it manually,
+        while possible, will usually do nothing.
         """
         # We start by traversing _ranges and removing all empty things.
         rngsetlistnode = self._rangesets.first
@@ -1608,9 +1654,11 @@ class RangeDict:
 
     def remove(self, rng):
         """
-        Removes the given Range or RangeSet from this RangeDict, leaving behind 'empty space'.
-        Afterwards, empty ranges, and values with no remaining corresponding ranges,
-        will be automatically removed.
+        Removes the given Range or RangeSet from this RangeDict, leaving behind
+        'empty space'.
+
+        Afterwards, empty ranges, and values with no remaining corresponding
+        ranges, will be automatically removed.
         """
         # no mutation unless the operation is successful
         rng = RangeSet(rng)
@@ -1633,13 +1681,14 @@ class RangeDict:
 
     def ranges(self):
         """
-        Returns a list of RangeSets that correspond to some value in this RangeDict, ordered
-        as follows:
+        Returns a list of RangeSets that correspond to some value in this
+        RangeDict, ordered as follows:
 
-          All Rangesets of comparable types are grouped together, with order corresponding
-          to the order in which the first RangeSet of the given type was added to this
-          RangeDict (earliest first). Within each such group, RangeSets are ordered in
-          increasing order of their lower bounds.
+          All Rangesets of comparable types are grouped together, with
+          order corresponding to the order in which the first RangeSet of
+          the given type was added to this RangeDict (earliest first).
+          Within each such group, RangeSets are ordered in increasing order
+          of their lower bounds.
 
         This function is analagous to Python's built-in `dict.keys()`
         """
@@ -1647,9 +1696,10 @@ class RangeDict:
 
     def values(self):
         """
-        Returns a list of values that are corresponded to by some RangeSet in this RangeDict,
-        ordered by how recently they were added (via .`add()` or `.update()`) or set (via `.set()`
-        or `.setvalue()`), with the oldest values being listed first.
+        Returns a list of values that are corresponded to by some RangeSet in
+        this RangeDict, ordered by how recently they were added (via .`add()`
+        or `.update()`) or set (via `.set()` or `.setvalue()`), with the
+        oldest values being listed first.
 
         This function is synonymous to Python's built-in `dict.values()`
         """
@@ -1664,8 +1714,8 @@ class RangeDict:
 
     def clear(self):
         """
-        Removes all items from this RangeDict, including all of the Ranges that serve as keys,
-        and the values to which they correspond.
+        Removes all items from this RangeDict, including all of the Ranges
+        that serve as keys, and the values to which they correspond.
         """
         self._rangesets = _LinkedList()
         self._values = {}
@@ -1688,15 +1738,18 @@ class RangeDict:
         return self.get(item)
 
     def __contains__(self, item):
-        """ Returns true if the given item corresponds to any single value in this RangeDict """
+        """
+        Returns true if the given item corresponds to any single value
+        in this RangeDict
+        """
         sentinel2 = object()
         return not (self.get(item, sentinel2) is sentinel2)
         # return any(item in rngset for rngsetlist in self._rangesets for (rngset, value) in rngsetlist)
 
     def __len__(self):
         """
-        Returns the number of values, not the number of unique Ranges, since determining how to
-        count Ranges is Hard
+        Returns the number of values, not the number of unique Ranges,
+        since determining how to count Ranges is Hard
         """
         return len(self._values)
 
