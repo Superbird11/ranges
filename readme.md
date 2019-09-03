@@ -226,7 +226,9 @@ See [the documentation](https://python-ranges.readthedocs.io/en/latest/#ranges.R
 
 ## Support / Contributing
 
-If you spot any bugs in this module, please submit an issue detailing what you
+If you spot any bugs in this module, please 
+[submit an issue](https://github.com/Superbird11/ranges/issues)
+detailing what you
 did, what you were expecting, and what you saw, and I'll make a prompt effort
 to isolate the root cause and fix it. The error should be reproducible. 
 
@@ -237,7 +239,9 @@ to submit a pull request with improvements to the code.
 This module is extensively unit-tested. All code contributions should be
 accompanied by thorough unit tests for every conceivable use case of the new
 functionality. If you spot any use cases that aren't currently covered by the
-unit test suite, feel free to either submit a GitHub issue detailing them, or
+unit test suite, feel free to either 
+[submit a GitHub issue](https://github.com/Superbird11/ranges/issues) 
+detailing them, or
 simply add them yourself and submit a pull request.
 
 ### Possible To-Do List:
