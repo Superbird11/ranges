@@ -59,7 +59,7 @@ tax_info = RangeDict({
     Range(9701,   39476):  (970,      0.12, 9700),
     Range(39476,  84201):  (4543,     0.22, 39475),
     Range(84201,  160726): (14382.2,  0.24, 84200),
-    Range(160726, 204101): (32748.5,  0.32, 16072 5),
+    Range(160726, 204101): (32748.5,  0.32, 160725),
     Range(204101, 510301): (46628.5,  0.35, 204100),
     Range(start=510301):   (153798.5, 0.37, 510300),
 })
@@ -172,7 +172,7 @@ methods a range-like object, it'll get automatically converted:
 
 ```python
 print(rngset1.union(Range(3, 8)))  # {[1, 10)}
-print(rngset1.intersect("[3, 8)"))  # {[3, 4.5], (6.5, 8)}
+print(rngset1.intersection("[3, 8)"))  # {[3, 4.5], (6.5, 8)}
 print(rngset1.symmetric_difference("[3, 8)"))  # {[1, 3), (4.5, 6], [8, 10)}
 ```
 
@@ -189,7 +189,7 @@ Finally, you can iterate through a `RangeSet` to get all of its component ranges
 
 ```python
 for rng in rngset1:
-    print(rng):
+    print(rng)
 # [1, 4.5]
 # (6.5, 10)
 ```
@@ -264,6 +264,8 @@ synergize nicely. This won't lower the complexity class below its current
 worst-case `O(n^2)`, but it could drastically improve performance.
 - Rewrite `RangeSet.isdisjoint()` to use pair-stepping and short-circuiting. The
 reasoning here is the same as for `RangeSet.intersection()`.
+- Add pretty-printing for `RangeSet` and especially `RangeDict`. The `pprint`
+module does not seem to work on them, unfortunately.
 
 Any open issues or bugs are also fair game for contribution. See 
 [above](#errors--contributing) for directions.
