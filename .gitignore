@@ -13,3 +13,4 @@ pip-selfcheck.json
 pyvenv.cfg
 
 **.pyc
+deploy.sh
