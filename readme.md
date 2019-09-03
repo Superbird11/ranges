@@ -73,7 +73,7 @@ The `Range` data structure also accepts strings, dates, and any other data type,
 long as the start value is less than the end value (and so long as checking that
 doesn't raise an error). 
 
-See [the in-depth documentation]() for more details.
+See [the in-depth documentation](https://python-ranges.readthedocs.io/en/latest/) for more details.
 
 ## Installation
 
@@ -149,7 +149,7 @@ print(rng1.symmetric_difference(rng2))  # {[1.5, 4), [7, 8.5)}
 Of course, the operators `|`, `&`, `-`, and `^` can be used in place of those
 methods, just like for python's built-in `set`s.
 
-See [the documentation]() for more details.
+See [the documentation](https://python-ranges.readthedocs.io/en/latest/#ranges.Range) for more details.
 
 ### `RangeSet`
 
@@ -194,7 +194,7 @@ for rng in rngset1:
 # (6.5, 10)
 ```
 
-See [the documentation]() for more details.
+See [the documentation](https://python-ranges.readthedocs.io/en/latest/#ranges.RangeSet) for more details.
 
 ### ` RangeDict`
 
@@ -222,7 +222,7 @@ mixmatch = RangeDict({
 })
 ```
 
-See [the documentation]() for more details.
+See [the documentation](https://python-ranges.readthedocs.io/en/latest/#ranges.RangeDict) for more details.
 
 ## Support / Contributing
 
