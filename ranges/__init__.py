@@ -1,7 +1,8 @@
 """
-Contains the data structures Range, RangeSet, and RangeDict. Import them to learn more.
+The `ranges` module contains the data structures Range, RangeSet, and RangeDict.
 
 See http://pypi.org/project/python-ranges for information.
+
 See http://github.com/superbird11/ranges for source code.
 """
 
