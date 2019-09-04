@@ -266,6 +266,12 @@ worst-case `O(n^2)`, but it could drastically improve performance.
 reasoning here is the same as for `RangeSet.intersection()`.
 - Add pretty-printing for `RangeSet` and especially `RangeDict`. The `pprint`
 module does not seem to work on them, unfortunately.
+- Replace the `_LinkedList` data structure (contained in `_helper.py`) with an
+[interval list](https://en.wikipedia.org/wiki/Interval_tree), an
+[`O(sqrt(n))` list](https://github.com/igushev/IgushArray), or some other data
+structure more tailored to the particular problem. Linked List was chosen because
+it supported quick insertion/deletion and was easy to implement; the latter
+concern is no longer relevant.
 
 Any open issues or bugs are also fair game for contribution. See 
 [above](#errors--contributing) for directions.
