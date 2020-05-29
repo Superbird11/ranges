@@ -1,3 +1,4 @@
+# -*- coding: future_fstrings -*-
 import re
 from collections.abc import Iterable
 from ._helper import _LinkedList, _InfiniteValue, _is_iterable_non_string
@@ -1767,18 +1768,16 @@ class RangeDict:
         return not self.isempty()
 
     def __str__(self):
-        # nested f-strings, whee
-        return f"""{{{
-            ', '.join(
+        return ', '.join(
                 f"{{{', '.join(str(rng) for rngset in rngsets for rng in rngset)}}}: {value}"
                 for value, rngsets in self._values.items()
             )
-        }}}"""
 
     def __repr__(self):
-        return f"""RangeDict{{{
-        ', '.join(
+        sets = ', '.join(
             f"RangeSet{{{', '.join(repr(rng) for rngset in rngsets for rng in rngset)}}}: {repr(value)}"
             for value, rngsets in self._values.items()
         )
+        return f"""RangeDict{{{
+            sets
         }}}"""

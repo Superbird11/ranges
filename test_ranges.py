@@ -1,3 +1,4 @@
+# -*- coding: future_fstrings -*-
 import pytest
 from pytest import fail
 from ranges import Range, RangeSet, RangeDict

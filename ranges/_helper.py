@@ -1,3 +1,4 @@
+# -*- coding: future_fstrings -*-
 from collections import Iterable
 from numbers import Number
 
