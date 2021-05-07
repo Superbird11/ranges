@@ -197,7 +197,7 @@ def test_range_constructor_invalid(args, kwargs):
         (Range(), float('inf'), False, "[-inf, inf)", "Range[-inf, inf)"),  # inclusive Infinity is deliberate
         (Range(include_end=True), float('inf'), True, "[-inf, inf]", "Range[-inf, inf]"),  # (see IEEE 754)
         (Range(-3, 3), Range(1, 2), True, "[-3, 3)", "Range[-3, 3)"),
-        (Range(-3, 3), Range(1, 3), True, "[-3, 3)", "Range[-3, 3)"),
+        (Range(-3, 3), Range(1, 3), True, "[-3, 3)", "Range[-3, 3)"),  # changed, see issue #4
         (Range(-3, 3), Range(-4, 4), False, "[-3, 3)", "Range[-3, 3)"),
         (Range(-3, 3), Range(-3, -2), True, "[-3, 3)", "Range[-3, 3)"),
         (Range(), float('nan'), False, "[-inf, inf)", "Range[-inf, inf)"),
@@ -326,7 +326,7 @@ def test_range_union(rng1, rng2, union, error_type):
         (Range(1, 3), Range(2, 4), Range(2, 3, include_end=False), None),
         (Range(1, 3), "[2, 4)", Range(2, 3, include_end=False), "r2"),
         (Range(1, 3, include_end=True), Range(2, 4), Range(2, 3, include_end=True), None),
-        (Range(1, 2), Range(2, 3), Range(2, 2), None),
+        (Range(1, 2), Range(2, 3), None, None),  # Behavior changed: issue #7
         (Range(1, 3), Range(1, 3), Range(1, 3), None),
         (Range(1, 4), Range(2, 3), Range(2, 3), None),
         (Range(1, 3), Range(3, 5, include_start=False), None, None),

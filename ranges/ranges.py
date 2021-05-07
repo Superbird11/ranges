@@ -270,7 +270,7 @@ class Range:
             raise TypeError("Cannot overlap a Range with a non-Range")
         # do the ranges overlap?
         rng_a, rng_b = (self, rng) if self < rng else (rng, self)
-        if rng_a.isdisjoint(rng_b) and not (rng_a.end == rng_b.start and rng_a.include_end != rng_b.include_start):
+        if rng_a.isdisjoint(rng_b):
             return None
         # compute parameters for new intersecting range
         # new_start = rng_b.start
