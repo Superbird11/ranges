@@ -444,12 +444,22 @@ class Range:
         return self.start == -Inf or self.end == Inf
 
     def _above_start(self, item):
+        if isinstance(item, Range):
+            if self.include_start or self.include_start == item.include_start:
+                return item.start >= self.start
+            else:
+                return item.start > self.start
         if self.include_start:
             return item >= self.start
         else:
             return item > self.start
 
     def _below_end(self, item):
+        if isinstance(item, Range):
+            if self.include_end or self.include_end == item.include_end:
+                return item.end <= self.end
+            else:
+                return item.end < self.end
         if self.include_end:
             return item <= self.end
         else:

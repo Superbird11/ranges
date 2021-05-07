@@ -2166,6 +2166,27 @@ def test_rangedict_items(rngdict, expected):
     assert(expected == rngdict.items())
 
 
+def test_issue4():
+    # issue: a Range that exactly overlaps one exclusive border of a key in a RangeDict
+    # does not register as contains
+    # cause: Range._above_start() and ._below_end() were disregarding the other Range's inclusivity
+    # by not treating the other Range as a Range
+    rd = RangeDict({Range(0, 5, include_end=True): 'zero to five inclusive'})
+    assert(Range(0, 5, include_end=True) in rd)
+    assert(Range(0, 4) in rd)
+    assert(Range(1, 4) in rd)
+    assert(Range(1, 5, include_end=True) in rd)
+    rd2 = RangeDict({Range(0, 5, include_start=False): 'zero to five exclusive'})
+    assert(Range(0, 5, include_start=False) in rd2)
+    assert(Range(0, 4, include_start=False) in rd2)
+    assert(Range(1, 4) in rd2)
+    assert(Range(1, 5) in rd2)
+
+
+if __name__ == '__main__':
+    test_issue4()
+
+
 def test_issue8():
     # issue: adding a Range to a RangeSet containing two non-overlapping ranges, such that the new range overlaps
     # with one but not the other, leads to a TypeError being raised.
@@ -2183,6 +2204,8 @@ def test_issue8():
         assert(str(b) == "{[100, 300), [400, 600)}")
     except TypeError:
         fail("RangeSet should not have an issue concatenating to the second range of two in a RangeSet")
+
+
 
 
 def test_rangedict_docstring():
