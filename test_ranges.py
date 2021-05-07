@@ -197,7 +197,7 @@ def test_range_constructor_invalid(args, kwargs):
         (Range(), float('inf'), False, "[-inf, inf)", "Range[-inf, inf)"),  # inclusive Infinity is deliberate
         (Range(include_end=True), float('inf'), True, "[-inf, inf]", "Range[-inf, inf]"),  # (see IEEE 754)
         (Range(-3, 3), Range(1, 2), True, "[-3, 3)", "Range[-3, 3)"),
-        (Range(-3, 3), Range(1, 3), False, "[-3, 3)", "Range[-3, 3)"),
+        (Range(-3, 3), Range(1, 3), True, "[-3, 3)", "Range[-3, 3)"),
         (Range(-3, 3), Range(-4, 4), False, "[-3, 3)", "Range[-3, 3)"),
         (Range(-3, 3), Range(-3, -2), True, "[-3, 3)", "Range[-3, 3)"),
         (Range(), float('nan'), False, "[-inf, inf)", "Range[-inf, inf)"),
@@ -2183,8 +2183,13 @@ def test_issue4():
     assert(Range(1, 5) in rd2)
 
 
-if __name__ == '__main__':
-    test_issue4()
+def test_issue6():
+    # issue: cannot use unhashable types as the value in a RangeDict
+    try:
+        x = RangeDict({Range(0, 1): ["A", "B"]})
+        assert(str(x) == "{{[0, 1)}: ['A', 'B']}")
+    except TypeError:
+        fail("RangeDict should not raise an error when value is unhashable")
 
 
 def test_issue8():
