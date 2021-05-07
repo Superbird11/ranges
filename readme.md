@@ -130,6 +130,25 @@ that's lexicographically greater than "journey", and
 `Range(end=datetime.date(1989, 10, 4))` will include any date before October 4,
 1989, despite neither `str` nor `datetime` having any built-in notion of infinity.
 
+You can import `Inf` in order to invoke this infinity explicitly:
+
+```python
+from ranges import Range, Inf
+rngA = Range(-Inf, Inf)
+rngB = Range()
+# rng1 and rng2 are identical
+```
+
+and you can check whether a range is infinite on either end by calling `.isinfinite()`:
+
+```python
+rngC = Range(end=0)
+rngD = Range(start=0)
+rngE = Range(-1, 1)
+print(rng1.isinfinite(), rng2.isinfinite(), rng3.isinfinite())
+# True True False
+```
+
 If you're making a range of numbers, then you can also use a single string as an
 argument, with circle-brackets `()` meaning "exclusive" and square-brackets `[]`
 meaning "inclusive":
