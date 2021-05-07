@@ -119,6 +119,9 @@ class _InfiniteValue(Number):
         return hash(self.floatvalue)
 
 
+Inf = _InfiniteValue()
+
+
 class _LinkedList(Iterable):
     """
     A custom definition of a single, feature-poor, linked-list.

@@ -1,6 +1,6 @@
 import re
 from collections.abc import Iterable
-from ._helper import _LinkedList, _InfiniteValue, _is_iterable_non_string
+from ._helper import _LinkedList, _InfiniteValue, _is_iterable_non_string, Inf
 
 
 class Range:
@@ -436,6 +436,12 @@ class Range:
             except (TypeError, ArithmeticError, ValueError) as _:
                 pass
         raise TypeError(f"Range of {self.start.__class__} to {self.end.__class__} has no defined length")
+
+    def isinfinite(self):
+        """
+        Returns True if this Range has a negative bound of -Inf or a positive bound of +Inf
+        """
+        return self.start == -Inf or self.end == Inf
 
     def _above_start(self, item):
         if self.include_start:
@@ -938,6 +944,13 @@ class RangeSet(Iterable):
         returns a shallow copy of this RangeSet
         """
         return RangeSet(self)
+
+    def isinfinite(self):
+        """
+        Returns True if this RangeSet has a negative bound of -Inf or a positive bound of +Inf,
+        and False otherwise
+        """
+        return self._ranges.first.value.start == -Inf or self._ranges.last.value.end == Inf
 
     @staticmethod
     def _merge_ranges(ranges):
