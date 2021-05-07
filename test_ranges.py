@@ -2166,6 +2166,25 @@ def test_rangedict_items(rngdict, expected):
     assert(expected == rngdict.items())
 
 
+def test_issue8():
+    # issue: adding a Range to a RangeSet containing two non-overlapping ranges, such that the new range overlaps
+    # with one but not the other, leads to a TypeError being raised.
+    # cause: code was passing a Linked List Node instead of the node's value (a range)
+    try:
+        a = RangeSet()
+        a.add(Range(100, 300))
+        a.add(Range(400, 500))
+        a.add(Range(500, 600))
+        assert(str(a) == "{[100, 300), [400, 600)}")
+        b = RangeSet()
+        b.add(Range(400, 600))
+        b.add(Range(200, 300))
+        b.add(Range(100, 200))
+        assert(str(b) == "{[100, 300), [400, 600)}")
+    except TypeError:
+        fail("RangeSet should not have an issue concatenating to the second range of two in a RangeSet")
+
+
 def test_rangedict_docstring():
     a = RangeDict()
     assert(str(a) == "{}")

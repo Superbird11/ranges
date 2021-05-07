@@ -694,14 +694,14 @@ class RangeSet(Iterable):
                 while prev_union and inserted_node.prev:
                     inserted_node.value = prev_union
                     temp_ranges.pop_before(inserted_node)
-                    prev_union = inserted_node.value.union(inserted_node.prev) if inserted_node.prev else None
+                    prev_union = inserted_node.value.union(inserted_node.prev.value) if inserted_node.prev else None
             # merge this range with the next range(s)
             if inserted_node.next:
                 next_union = inserted_node.value.union(inserted_node.next.value)
                 while next_union and inserted_node.next:
                     inserted_node.value = next_union
                     temp_ranges.pop_after(inserted_node)
-                    next_union = inserted_node.value.union(inserted_node.next) if inserted_node.next else None
+                    next_union = inserted_node.value.union(inserted_node.next.value) if inserted_node.next else None
         except TypeError:
             raise TypeError(f"Range '{rng}' is not comparable with the other Ranges in this RangeSet")
         # apply changes
