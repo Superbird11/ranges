@@ -8,6 +8,9 @@ See http://github.com/superbird11/ranges for source code.
 """
 
 from .ranges import Range, RangeSet, RangeDict
+from ._helper import _InfiniteValue
 
-__all__ = ["Range", "RangeSet", "RangeDict"]
+Inf = _InfiniteValue()
+
+__all__ = ["Range", "RangeSet", "RangeDict", "Inf"]
 name = "ranges"
