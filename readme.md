@@ -9,8 +9,11 @@ This module provides data structures for representing
 ## Introduction
 
 One curious missing feature in Python (and several other programming languages) is 
-the absence of a Range data structure - a continuous set of values from some
-starting point to some ending point. Instead, we have to make do with verbose
+the absence of a proper Range data structure - a _continuous_ set of values from some
+starting point to some ending point. Python's built-in `range()` produces an object
+that can be used to iterate over numbers, but it's not continuous (e.g. 
+`1.5 in range(1, 2)` returns `False`) and doesn't work
+for non-numeric types like dates. Instead, we have to make do with verbose
 `if`/`else` comparisons:
 
 ```python
