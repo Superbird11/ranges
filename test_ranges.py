@@ -2211,6 +2211,23 @@ def test_issue8():
         fail("RangeSet should not have an issue concatenating to the second range of two in a RangeSet")
 
 
+def test_issue12():
+    # issue: mutating a mutable RangeDict value also affected all keys set to equivalent values.
+    # In other words, the RangeDict was compressing equal but not identical values into the same
+    # rangekey values. To fix, added a toggle to use identity instead of equality.
+    # The code in this test is now also contained in the docstring.
+    f = RangeDict({Range(1, 2): {3}, Range(4, 5): {3}})
+    assert(str(f) == '{{[1, 2), [4, 5)}: {3}}')
+    f[Range(1, 2)] |= {4}
+    assert(str(f) == '{{[1, 2), [4, 5)}: {3, 4}}')
+
+    g = RangeDict({Range(1, 2): {3}, Range(4, 5): {3}}, identity=True)
+    assert(str(g) == '{{[1, 2)}: {3}, {[4, 5)}: {3}}')
+
+    h = RangeDict({Range(1, 2): {3}, Range(4, 5): {3}})
+    assert(str(h) == '{{[1, 2), [4, 5)}: {3}}')
+    h[Range(1, 2)] = h[Range(1, 2)] | {4}
+    assert(str(h) == '{{[4, 5)}: {3}, {[1, 2)}: {3, 4}}')
 
 
 def test_rangedict_docstring():
@@ -2253,3 +2270,7 @@ def test_rangedict_docstring():
     assert(e.get("holy") == "grail")  # grail
     asserterror(KeyError, e.get, (3,))  # KeyError
     asserterror(KeyError, e.get, (None,))  # KeyError
+
+
+if __name__ == '__main__':
+    pass

@@ -1,6 +1,7 @@
 import re
 from collections.abc import Iterable
 from ._helper import _LinkedList, _InfiniteValue, _is_iterable_non_string, Inf, _UnhashableFriendlyDict
+from operator import is_
 
 
 class Range:
@@ -1230,16 +1231,55 @@ class RangeDict:
     include any empty ranges. Values will disappear if there are not
     any keys that map to them. Adding an empty Range to the RangeDict
     will not trigger an error, but will have no effect.
+
+    By default, the range set will determine value uniqueness by equality
+    (`==`), not by identity (`is`), and multiple rangekeys pointing to the
+    same value will be compressed into a single RangeSet pointed at a
+    single value. This is mainly meaningful for values that are mutable,
+    such as `list`s or `set`s.
+    If using assignment operators besides the generic `=` (`+=`, `|=`, etc.)
+    on such values, be warned that the change will reflect upon the entire
+    rangeset.
+
+    >>> # [{3}] == [{3}] is True, so the two ranges are made to point to the same object
+    >>> f = RangeDict({Range(1, 2): {3}, Range(4, 5): {3}})
+    >>> print(f)  # {{[1, 2), [4, 5)}: {3}}
+    >>>
+    >>> # f[1] returns the {3}. When |= is used, this object changes to {3, 4}
+    >>> f[Range(1, 2)] |= {4}
+    >>> # since the entire rangeset is pointing at the same object, the entire range changes
+    >>> print(f)  # {{[1, 2), [4, 5)}: {3, 4}}
+
+    This is because `dict[value] = newvalue` calls `dict.__setitem__()`, whereas
+    `dict[value] += item` instead calls `dict[value].__iadd__()` instead.
+    To make the RangeDict use identity comparison instead, construct it with the
+    keyword argument `identity=True`, which should help:
+
+    >>> # `{3} is {3}` is False, so the two ranges don't coalesce
+    >>> g = RangeDict({Range(1, 2): {3}, Range(4, 5): {3}}, identity=True)
+    >>> print(g)  # {{[1, 2)}: {3}, {[4, 5)}: {3}}
+
+    To avoid the problem entirely, you can also simply not mutate mutable values
+    that multiple rangekeys may refer to, substituting non-mutative operations:
+
+    >>> h = RangeDict({Range(1, 2): {3}, Range(4, 5): {3}})
+    >>> print(h)  # {{[1, 2), [4, 5)}: {3}}
+    >>> h[Range(1, 2)] = h[Range(1, 2)] | {4}
+    >>> print(h)  # {{[4, 5)}: {3}, {[1, 2)}: {3, 4}}
     """
     # sentinel for checking whether an arg was passed, where anything is valid including None
     _sentinel = object()
 
-    def __init__(self, iterable=_sentinel):
+    def __init__(self, iterable=_sentinel, *, identity=False):
         """
         Initialize a new RangeDict from the given iterable. The given iterable
         may be either a RangeDict (in which case, a copy will be created),
         a regular dict with all keys able to be converted to Ranges, or an
         iterable of 2-tuples (range, value).
+
+        If the argument `identity=True` is given, the RangeDict will use `is` instead
+        of `==` when it compares multiple rangekeys with the same associated value to
+        possibly merge them.
         """
         # Internally, RangeDict has two data structures
         #    _values is a dict {value: [rangeset, ...], ..., '_sentinel': [(value: [rangeset, ...]), ...]}
@@ -1254,6 +1294,8 @@ class RangeDict:
         # Meanwhile, _ranges is a list-of-lists instead of just a list, so that we can accommodate ranges of
         #  different types (e.g. a RangeSet of ints and a RangeSet of strings) pointing to the same values.
         self._values = _UnhashableFriendlyDict()
+        if identity:
+            self._values._operator = is_
         if iterable is RangeDict._sentinel:
             self._rangesets = _LinkedList()
         elif isinstance(iterable, RangeDict):
@@ -1475,7 +1517,7 @@ class RangeDict:
         try:
             return self.getitem(item)[3]
         except KeyError:
-            if default != RangeDict._sentinel:
+            if default is not RangeDict._sentinel:
                 return default
             raise
 

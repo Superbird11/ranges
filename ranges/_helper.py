@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from numbers import Number
+from operator import is_, eq
 
 
 def _is_iterable_non_string(arg):
@@ -423,13 +424,14 @@ class _UnhashableFriendlyDict(dict):
         self._unhashable = []
         super(_UnhashableFriendlyDict, self).__init__()
         self.update(*args, **kwargs)
+        self._operator = eq
 
     def __setitem__(self, key, value):
         try:
             super(_UnhashableFriendlyDict, self).__setitem__(key, value)
         except TypeError:
             for i in range(len(self._unhashable)):
-                if self._unhashable[i][0] == key:
+                if self._operator(self._unhashable[i][0], key):
                     del self[self._unhashable[i][2]]
                     self._unhashable.pop(i)
                     break
@@ -442,7 +444,7 @@ class _UnhashableFriendlyDict(dict):
             return super(_UnhashableFriendlyDict, self).__getitem__(item)
         except TypeError:
             for k, v, _ in self._unhashable:
-                if k == item:
+                if self._operator(k, item):
                     return v
             raise KeyError(item)
 
@@ -451,7 +453,7 @@ class _UnhashableFriendlyDict(dict):
             super(_UnhashableFriendlyDict, self).__delitem__(key)
         except TypeError:
             for i in range(len(self._unhashable)):
-                if self._unhashable[i][0] == key:
+                if self._operator(self._unhashable[i][0], key):
                     del self[self._unhashable[i][2]]
                     self._unhashable.pop(i)
                     break
@@ -460,7 +462,7 @@ class _UnhashableFriendlyDict(dict):
         try:
             return super(_UnhashableFriendlyDict, self).__contains__(item)
         except TypeError:
-            return item in (i[0] for i in self._unhashable)
+            return any(self._operator(item, i[0]) for i in self._unhashable)
 
     def __eq__(self, other):
         if self._unhashable:
@@ -509,7 +511,7 @@ class _UnhashableFriendlyDict(dict):
 
     def copy(self):
         c = _UnhashableFriendlyDict(super(_UnhashableFriendlyDict, self).copy())
-        c.unhashable = self._unhashable[:]
+        c._unhashable = self._unhashable[:]
 
     def get(self, key, default=None):
         try:
