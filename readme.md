@@ -44,6 +44,14 @@ else:
 print(f"Your tax on that income is ${tax:.2f}")
 ```
 
+And if we want to restrict a user input to within certain bounds, we need to do 
+some complicated, verbose construct like this:
+
+```python
+user_input = int(input())
+value_we_want = min(max(user_input, start), end)
+```
+
 This module, `ranges`, fixes this problem by introducing a data structure `Range` to
 represent a continuous range, and a `dict`-like data structure `RangeDict` to map
 ranges to values. This makes simple range checks more intuitive:
@@ -51,6 +59,9 @@ ranges to values. This makes simple range checks more intuitive:
 ```python
 if value in Range(start, end):
     # do something
+
+user_input = int(input())
+value_we_want = Range(start, end).clamp(user_input)
 ```
 
 and does away with the tedious `if`/`elif`/`else` blocks:
@@ -76,6 +87,7 @@ The `Range` data structure also accepts strings, dates, and any other data type,
 long as the start value is less than the end value (and so long as checking that
 doesn't raise an error). 
 
+
 See [the in-depth documentation](https://python-ranges.readthedocs.io/en/latest/) for more details.
 
 ## Installation
@@ -87,7 +99,8 @@ $ pip install python-ranges
 ```
 
 Due to use of format strings in the code, this module will only work with
-**python 3.6 or higher**.
+**python 3.6 or higher**. Some post-3.9 features are also used in the module's
+type hinting, which may pose a problem for earlier versions of python.
 
 ## Usage
 

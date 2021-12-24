@@ -1,5 +1,5 @@
 import re
-from ._helper import _InfiniteValue, Inf, Rangelike
+from ._helper import _InfiniteValue, Inf, Rangelike, RangelikeString
 import ranges  # avoid circular imports by explicitly referring to ranges.RangeSet when needed
 from typing import Any, TypeVar, Union
 
@@ -120,7 +120,7 @@ class Range:
         `dict`.
     """
 
-    def __init__(self, *args: Union['Range', str, T], **kwargs: T):
+    def __init__(self, *args: Union['Range', RangelikeString, T], **kwargs: T):
         """
         Constructs a new Range from `start` to `end`, or from an existing range.
         Is inclusive on the lower bound and exclusive on the upper bound by

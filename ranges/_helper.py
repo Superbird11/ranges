@@ -1,10 +1,20 @@
 from collections.abc import Iterable
 from numbers import Number
-from operator import is_, eq
-from typing import Union
+from operator import eq  # , is_
+from typing import Union, NewType
 
 
-Rangelike = Union['Range', 'RangeSet']
+r""" 
+Type hint for the specific type of string that can be parsed as a range. 
+Essentially, must conform to regex `r'[\(\[]\d+(?:\.\.|,)\d+[\)\]]'`, ignoring
+all whitespace. In human-readable form, that's `[start..end]`, where both `start`
+and `end` should be numbers, either square or round brackets may be used, and either
+`..` or `,` may be used as the separator in the middle.
+"""
+RangelikeString = NewType('RangelikeString', str)
+
+""" Type hint to denote a range-like object - either a Range, RangeSet, or a string that can be parsed as a range """
+Rangelike = Union['Range', 'RangeSet', RangelikeString]
 
 
 def _is_iterable_non_string(arg):

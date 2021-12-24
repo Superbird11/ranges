@@ -1,6 +1,10 @@
 from .Range import Range
 from collections.abc import Iterable
-from ._helper import _is_iterable_non_string, _LinkedList, Inf
+from ._helper import _is_iterable_non_string, _LinkedList, Inf, Rangelike
+from typing import TypeVar, Iterator, Union
+
+
+T = TypeVar('T')
 
 
 class RangeSet(Iterable):
@@ -42,9 +46,11 @@ class RangeSet(Iterable):
 
     RangeSets are hashable, meaning they can be used as keys in dicts.
     """
-    def __init__(self, *args):
+    def __init__(self, *args: Union[Rangelike, Iterable[Rangelike]]):
         """
         Constructs a new RangeSet containing the given sub-ranges.
+        :param args: For each positional argument, if the argument is Rangelike, it is added to this RangeSet,
+            or if it is an iterable containing Rangelikes, all contained Rangelikes are added to this RangeSet.
         """
         # flatten args
         temp_list = []
@@ -56,7 +62,7 @@ class RangeSet(Iterable):
         # assign own Ranges
         self._ranges = RangeSet._merge_ranges(temp_list)
 
-    def add(self, rng):
+    def add(self, rng: Rangelike) -> None:
         """
         Adds a copy of the given range or RangeSet to this RangeSet.
 
@@ -68,6 +74,8 @@ class RangeSet(Iterable):
 
         To add all ranges in an iterable containing multiple ranges,
         use `.extend()` instead.
+
+        :param rng: A single Rangelike object to add to this RangeSet
         """
         # if it's a RangeSet, then do extend instead
         if isinstance(rng, RangeSet):
@@ -121,7 +129,7 @@ class RangeSet(Iterable):
         #     inserted_node.value = next_union
         #     self._ranges.pop_after(inserted_node)
 
-    def extend(self, iterable):
+    def extend(self, iterable: Iterable[Rangelike]) -> None:
         """
         Adds a copy of each Range or RangeSet in the given iterable to
         this RangeSet.
@@ -129,18 +137,20 @@ class RangeSet(Iterable):
         Raises a `TypeError` if the argument is not iterable.
 
         This method works identically to `.add()` for RangeSets only.
+        :param iterable: iterable containing Rangelike objects to add to this RangeSet
         """
         self._ranges = RangeSet._merge_ranges(
             self._ranges + (Range(r) for r in iterable)
         )
 
-    def discard(self, rng):
+    def discard(self, rng: Rangelike) -> None:
         """
         Removes the entire contents of the given RangeSet from this RangeSet.
 
         This method will only remove a single RangeSet (or Range) from this
         RangeSet at a time. To remove a list of Range-like objects from this
         RangeSet, use .difference_update() instead.
+        :param rng: Rangelike to remove from this RangeSet.
         """
         # be lazy and do O(n^2) erasure
         if isinstance(rng, RangeSet):
@@ -182,31 +192,38 @@ class RangeSet(Iterable):
                     current_node.value = new_range
             current_node = current_node.next
 
-    def difference(self, rng_set):
+    def difference(self, rng_set: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
         """
         Return a new RangeSet containing the ranges that are in this RangeSet
         but not in the other given RangeSet or list of RangeSets. This
         RangeSet is not modified in the process.
+        :param rng_set: A rangelike object to take difference with, or an iterable of Rangelike objects
+            to take difference with all of which.
+        :return: a RangeSet identical to this one except with the given argument removed from it.
         """
         new_rng_set = self.copy()
         new_rng_set.difference_update(RangeSet(rng_set))
         return new_rng_set
 
-    def difference_update(self, rng_set):
+    def difference_update(self, rng_set: Union[Rangelike, Iterable[Rangelike]]) -> None:
         """
         Removes all ranges in the given iterable from this RangeSet.
 
         If an error occurs while trying to do this, then this RangeSet
         remains unchanged.
+        :param rng_set: A rangelike object to take difference with, or an iterable of Rangelike objects
+            to take difference with all of which.
         """
         self.discard(RangeSet._to_rangeset(rng_set))
 
-    def intersection(self, rng_set):
+    def intersection(self, rng_set: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
         """
         Returns a new RangeSet containing the intersection between this
         RangeSet and the given Range or RangeSet - that is, containing
         only the elements shared between this RangeSet and the given
         RangeSet.
+        :param rng_set: A rangelike, or iterable containing rangelikes, to find intersection with
+        :return: a RangeSet identical to this one except with all values not overlapping the given argument removed.
         """
         # convert to a RangeSet
         rng_set = RangeSet._to_rangeset(rng_set)
@@ -216,40 +233,46 @@ class RangeSet(Iterable):
         intersections = [rng for rng in intersections if rng is not None and not rng.isempty()]
         return RangeSet(intersections)
 
-    def intersection_update(self, rng_set):
+    def intersection_update(self, rng_set: Union[Rangelike, Iterable[Rangelike]]) -> None:
         """
         Updates this RangeSet to contain only the intersections between
         this RangeSet and the given Range or RangeSet, removing the parts
         of this RangeSet's ranges that do not overlap the given RangeSet
+        :param rng_set: A rangelike, or iterable containing rangelikes, to find intersection with
         """
         self._ranges = self.intersection(rng_set)._ranges
 
-    def union(self, rng_set):
+    def union(self, rng_set: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
         """
         Returns a new RangeSet containing the overlap between this RangeSet and the
         given RangeSet
+        :param rng_set: A rangelike, or iterable of rangelikes, to find union with
+        :return: a RangeSet identical to this one but also including all elements in the given argument.
         """
         # convert to RangeSet
         rng_set = RangeSet._to_rangeset(rng_set)
         # simply merge lists
         return RangeSet(self._ranges + rng_set._ranges)
 
-    def update(self, rng_set):
+    def update(self, rng_set: Union[Rangelike, Iterable[Rangelike]]) -> None:
         """
         Updates this RangeSet to add all the ranges in the given RangeSet, so
         that this RangeSet now contains the union of its old self and the
         given RangeSet.
+        :param rng_set: A rangelike, or iterable of rangelikes, to find union with
         """
         # convert to RangeSet
         rng_set = RangeSet._to_rangeset(rng_set)
         # merge lists
         self._ranges = RangeSet._merge_ranges(self._ranges + rng_set._ranges)
 
-    def symmetric_difference(self, rng_set):
+    def symmetric_difference(self, rng_set: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
         """
         Returns a new RangeSet containing the symmetric difference between this
         RangeSet  and the given Range or RangeSet - everything contained by
         this RangeSet or the given RangeSet, but not both.
+        :param rng_set: A rangelike, or iterable of rangelikes, to find symmetric difference with
+        :return: A RangeSet containing all values in either this or the given argument, but not both
         """
         # convert to a RangeSet
         rng_set = RangeSet._to_rangeset(rng_set)
@@ -259,20 +282,23 @@ class RangeSet(Iterable):
         union.difference_update(intersection)
         return union
 
-    def symmetric_difference_update(self, rng_set):
+    def symmetric_difference_update(self, rng_set: Union[Rangelike, Iterable[Rangelike]]) -> None:
         """
         Update this RangeSet to contain the symmetric difference between it and
         the given Range or RangeSet, by removing the parts of the given RangeSet
         that overlap with this RangeSet from this RangeSet.
+        :param rng_set: A rangelike, or iterable of rangelikes, to find symmetric difference with
         """
         # the easiest way to do this is just to do regular symmetric_difference and then copy the result
         rng_set = RangeSet._to_rangeset(rng_set)
         self._ranges = self.symmetric_difference(rng_set)._ranges
 
-    def isdisjoint(self, other):
+    def isdisjoint(self, other: Union[Rangelike, Iterable[Rangelike]]) -> bool:
         """
         Returns `True` if there is no overlap between this RangeSet and the
         given RangeSet.
+        :param other: a rangelike, or iterable of rangelikes, to check if overlaps this RangeSet
+        :return: False the argument (or any element of an iterable argument) overlap this Rangeset, or True otherwise
         """
         # convert to RangeSet
         other = RangeSet._to_rangeset(other)
@@ -280,7 +306,7 @@ class RangeSet(Iterable):
         # TODO improve efficiency by mergesort/short-circuiting
         return all(rng1.isdisjoint(rng2) for rng1 in self._ranges for rng2 in other._ranges)
 
-    def popempty(self):
+    def popempty(self) -> None:
         """
         Removes all empty ranges from this RangeSet. This is mainly used
         internally as a helper method, but can also be used deliberately
@@ -294,7 +320,7 @@ class RangeSet(Iterable):
                 self._ranges.pop_node(node)
             node = node.next
 
-    def getrange(self, item):
+    def getrange(self, item: Union[T, Iterable[T], 'RangeSet']) -> Rangelike:
         """
         If the given item is in this RangeSet, returns the specific Range it's
         in.
@@ -304,6 +330,9 @@ class RangeSet(Iterable):
         contain some part of it.
 
         Otherwise, raises an `IndexError`.
+        :param item: item to search for in this RangeSet
+        :return: if item is a single element, then the Range containing it. If item is iterable,
+            then a RangeSet containing only Ranges containing items.
         """
         if item in self:
             for rng in self._ranges:
@@ -322,42 +351,48 @@ class RangeSet(Iterable):
             raise IndexError(f"'{item}' could not be isolated")
         raise IndexError(f"'{item}' is not in this RangeSet")
 
-    def ranges(self):
+    def ranges(self) -> list[Range]:
         """
         Returns a `list` of the Range objects that this RangeSet contains
+        :return: the Ranges that make up this RangeSet
         """
         return list(iter(self._ranges))
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Removes all ranges from this RangeSet, leaving it empty.
         """
         self._ranges = _LinkedList()
 
-    def isempty(self):
+    def isempty(self) -> bool:
         """
         Returns True if this RangeSet contains no values, and False otherwise
+        :return: whether this RangeSet is empty
         """
         return self._ranges.isempty() or all(r.isempty() for r in self._ranges)
 
-    def copy(self):
+    def copy(self) -> 'RangeSet':
         """
         returns a shallow copy of this RangeSet
+        :return: a shallow copy of this RangeSet
         """
         return RangeSet(self)
 
-    def isinfinite(self):
+    def isinfinite(self) -> bool:
         """
         Returns True if this RangeSet has a negative bound of -Inf or a positive bound of +Inf,
         and False otherwise
+        :return: whether either furthest bound of this RangeSet is infinite
         """
         return self._ranges.first.value.start == -Inf or self._ranges.last.value.end == Inf
 
     @staticmethod
-    def _merge_ranges(ranges):
+    def _merge_ranges(ranges: Iterable[Range]) -> _LinkedList[Range]:
         """
         Compresses all of the ranges in the given iterable, and
         returns a _LinkedList containing them.
+        :param ranges: iterable containing ranges to merge
+        :return: a _LinkedList containing ranges, merged together.
         """
         # sort our list of ranges, first
         ranges = _LinkedList(sorted(ranges))
@@ -378,12 +413,14 @@ class RangeSet(Iterable):
         return ranges
 
     @staticmethod
-    def _to_rangeset(other):
+    def _to_rangeset(other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
         """
         Helper method.
         Converts the given argument to a RangeSet. This mainly exists to increase performance
         by not duplicating things that are already RangeSets, and for the sake of graceful
         error handling.
+        :param other: Same as arguments for RangeSet's constructor
+        :return: the given RangeSet, if `other` is a RangeSet, or a RangeSet constructed from it otherwise
         """
         if not isinstance(other, RangeSet):
             try:
@@ -392,7 +429,7 @@ class RangeSet(Iterable):
                 raise ValueError(f"Cannot convert {type(other)} to a RangeSet")
         return other
 
-    def __contains__(self, item):
+    def __contains__(self, item: Union[T, Rangelike]) -> bool:
         """
         Returns true if this RangeSet completely contains the given item, Range,
         RangeSet, or iterable (which will be assumed to be a RangeSet unless
@@ -400,6 +437,8 @@ class RangeSet(Iterable):
         item).
         Returns false otherwise.
         A RangeSet will always contain itself.
+        :param item: item to check if is contained in this RangeSet
+        :return: whether the item is present in this RangeSet
         """
         if self == item:
             return True
@@ -416,11 +455,13 @@ class RangeSet(Iterable):
             pass
         return any(item in rng for rng in self._ranges)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Union[Range, 'RangeSet']) -> bool:
         """
         Returns True if this RangeSet's ranges exactly match the other
         RangeSet's ranges, or if the given argument is a Range and this
         RangeSet contains only one identical Range
+        :param other: other object to check equality with
+        :return: whether this Rangeset equals the given object
         """
         if isinstance(other, RangeSet):
             return len(self._ranges) == len(other._ranges) and \
@@ -430,10 +471,12 @@ class RangeSet(Iterable):
         else:
             return False
 
-    def __lt__(self, other):
+    def __lt__(self, other: Union[Range, 'RangeSet']) -> bool:
         """
         Returns an ordering-based comparison based on the lowest ranges in
         self and other.
+        :param other: other object to compare with
+        :return: True if this RangeSet should be ordered before the other object, False otherwise
         """
         if isinstance(other, RangeSet):
             # return the first difference between this range and the next range
@@ -447,10 +490,12 @@ class RangeSet(Iterable):
         else:
             return False
 
-    def __gt__(self, other):
+    def __gt__(self, other: Union[Range, 'RangeSet']) -> bool:
         """
         Returns an ordering-based comparison based on the lowest ranges in
         self and other.
+        :param other: other object to compare with
+        :return: True if this RangeSet should be ordered after the other object, False otherwise
         """
         if isinstance(other, RangeSet):
             # return the first difference between this range and the next range
@@ -464,62 +509,73 @@ class RangeSet(Iterable):
         else:
             return False
 
-    def __le__(self, other):
+    def __le__(self, other: Union[Range, 'RangeSet']) -> bool:
+        """
+        :param other: other object to compare with
+        :return: True if this RangeSet equals or should be ordered before the other object, False otherwise
+        """
         return self < other or self == other
 
-    def __ge__(self, other):
+    def __ge__(self, other: Union[Range, 'RangeSet']) -> bool:
+        """
+        :param other: other object to compare with
+        :return: True if this RangeSet equals or should be ordered after the other object, False otherwise
+        """
         return self > other or self == other
 
-    def __ne__(self, other):
+    def __ne__(self, other: Union[Range, 'RangeSet']) -> bool:
+        """
+        :param other: other object to compare with
+        :return: True if this RangeSet is not equal to the other object, False if it is equal
+        """
         return not self == other
 
-    def __and__(self, other):
-        """ returns (self & other), identical to self.intersection(other) """
+    def __and__(self, other: Union[Range, 'RangeSet']) -> bool:
+        """ returns (self & other), identical to :func:`~RangeSet.intersection` """
         return self.intersection(other)
 
-    def __or__(self, other):
-        """ returns (self | other), identical to self.union(other) """
+    def __or__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ returns (self | other), identical to :func:`~RangeSet.union` """
         return self.union(other)
 
-    def __xor__(self, other):
-        """ returns (self ^ other), identical to
-        self.symmetric_difference(other) """
+    def __xor__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ returns (self ^ other), identical to :func:`~RangeSet.symmetric_difference` """
         return self.symmetric_difference(other)
 
-    def __sub__(self, other):
-        """ returns (self - other), identical to self.difference(other) """
+    def __sub__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ returns (self - other), identical to :func:`~RangeSet.difference` """
         return self.difference(other)
 
-    def __add__(self, other):
-        """ Returns (self + other), identical to self.union(other) """
+    def __add__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ Returns (self + other), identical to :func:`~RangeSet.union` """
         return self.union(other)
 
-    def __iand__(self, other):
-        """ Executes (self &= other), identical to self.intersection_update(other) """
+    def __iand__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ Executes (self &= other), identical to :func:`~RangeSet.intersection_update` """
         self.intersection_update(other)
         return self
 
-    def __ior__(self, other):
-        """ Executes (self |= other), identical to self.update(other) """
+    def __ior__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ Executes (self |= other), identical to :func:`~RangeSet.update` """
         self.update(other)
         return self
 
-    def __ixor__(self, other):
-        """ Executes (self ^= other), identical to self.symmetric_difference_update(other) """
+    def __ixor__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ Executes (self ^= other), identical to :func:`~RangeSet.symmetric_difference_update` """
         self.symmetric_difference_update(other)
         return self
 
-    def __iadd__(self, other):
-        """ Executes (self += other), identical to self.update(other) """
+    def __iadd__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ Executes (self += other), identical to :func:`~RangeSet.update` """
         self.update(other)
         return self
 
-    def __isub__(self, other):
-        """ Executes (self -= other), identical to self.difference_update(other) """
+    def __isub__(self, other: Union[Rangelike, Iterable[Rangelike]]) -> 'RangeSet':
+        """ Executes (self -= other), identical to :func:`~RangeSet.difference_update` """
         self.difference_update(other)
         return self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Range]:
         """
         Generates the ranges in this object, in order
         """
@@ -528,7 +584,10 @@ class RangeSet(Iterable):
     def __hash__(self):
         return hash(tuple(iter(self._ranges)))
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """
+        :return: False if this RangeSet is empty, True otherwise
+        """
         return not self.isempty()
 
     def __str__(self):
