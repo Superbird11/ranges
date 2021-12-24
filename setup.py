@@ -3,7 +3,7 @@ import setuptools
 with open("readme.md", "r") as fh:
     setuptools.setup(
         name="python-ranges",
-        version="1.0.0",
+        version="1.0.1",
         author="Louis Jacobowitz",
         author_email="ldjacobowitzer@gmail.com",
         description="""Continuous Range, RangeSet, and RangeDict data structures""",
@@ -20,5 +20,5 @@ with open("readme.md", "r") as fh:
             'Documentation': 'https://python-ranges.readthedocs.io/en/latest/',
             'GitHub': 'https://github.com/Superbird11/ranges',
         },
-        python_requires='>=3.6',
+        python_requires='>=3.9',
     )
