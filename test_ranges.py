@@ -1505,6 +1505,54 @@ def test_rangedict_pop(rngdict, key, expected, before, after, error_type):
 
 
 @pytest.mark.parametrize(
+    "rngdict,key,expected", [
+        (RangeDict(), Range(), []),  # empty rangedict, Range argument
+        (RangeDict(), None, []),  # empty rangedict, non-Range argument - should not throw an error
+        (RangeDict({Range(1, 3): 2}), Range(2, 4),  # single-element rangedict, Range argument
+            [([RangeSet(Range(1, 3))], RangeSet(Range(1, 3)), 2)]),
+        (RangeDict({Range(1, 3): 2}), "[2..4)",  # single-element rangedict, Rangelike but non-Range argument
+            [([RangeSet(Range(1, 3))], RangeSet(Range(1, 3)), 2)]),
+        (RangeDict({Range(1, 3): 2}), 2, ValueError),  # single-element rangedict, non-rangelike argument
+        (RangeDict({Range(1, 3): 2}), Range(5, 6), []),  # single-element rangedict, no intersections
+        (RangeDict({Range(1, 3): 2}), Range('a', 'b'), []),  # single-element rangedict, wrong type of Rangekey
+        (RangeDict({Range(1, 3): 2, Range(5, 7): 6}), Range(2, 4),  # two-element rangedict, one intersection
+            [([RangeSet(Range(1, 3))], RangeSet(Range(1, 3)), 2)]),
+        (RangeDict({Range(1, 3): 2, Range(5, 7): 6}), Range(2, 6),  # two-element rangedict, two intersections
+            [([RangeSet(Range(1, 3))], RangeSet(Range(1, 3)), 2),
+             ([RangeSet(Range(5, 7))], RangeSet(Range(5, 7)), 6)]),
+        (RangeDict({Range(1, 3): 2, Range(5, 7): 6}), Range(8, 9), []),  # two-element rangedict, no intersections
+        (RangeDict({Range(1, 3): 2, Range('a', 'c'): 'b'}), Range(2, 4),  # two types of ranges, one intersection
+            [([RangeSet(Range(1, 3))], RangeSet(Range(1, 3)), 2)]),
+        (RangeDict({Range(1, 3): 2, Range('a', 'c'): 'b'}), Range(),  # two types of ranges, two intersections
+            [([RangeSet(Range(1, 3))], RangeSet(Range(1, 3)), 2),
+             ([RangeSet(Range('a', 'c'))], RangeSet(Range('a', 'c')), 'b')]),
+        (RangeDict({Range(1, 3): 2, Range(5, 7): 6, Range('a', 'c'): 2}), Range(2, 4),  # multiple rngtypes, same value
+            [([RangeSet(Range(1, 3)), RangeSet(Range('a', 'c'))], RangeSet(Range(1, 3)), 2)]),
+        (RangeDict({Range(1, 3): 2, Range(3, 5): 4, Range(5, 7): 2}), Range(2, 4),  # interspersed ranges 1
+            [([RangeSet(Range(1, 3), Range(5, 7))], RangeSet(Range(1, 3), Range(5, 7)), 2),  # (two keys one rangeset)
+             ([RangeSet(Range(3, 5))], RangeSet(Range(3, 5)), 4)]),
+        (RangeDict({Range(1, 3): 2, Range(3, 5): 4, Range(5, 7): 2}), Range(3.5, 4.5),  # interspersed ranges 2
+            [([RangeSet(Range(3, 5))], RangeSet(Range(3, 5)), 4)]),
+        (RangeDict({Range(1, 3): 2, Range(5, 7): 6, Range('a', 'c'): 2}), Range(),  # multiple hits
+            [([RangeSet(Range(1, 3)), RangeSet(Range('a', 'c'))], RangeSet(Range(1, 3)), 2),
+             ([RangeSet(Range(5, 7))], RangeSet(Range(5, 7)), 6),
+             ([RangeSet(Range(1, 3)), RangeSet(Range('a', 'c'))], RangeSet(Range('a', 'c')), 2)]),
+    ]
+)
+def test_rangedict_getoverlap(rngdict, key, expected):
+    if isinstance(expected, type):
+        asserterror(expected, rngdict.getoverlapitems, (key,))
+        asserterror(expected, rngdict.getoverlap, (key,))
+        asserterror(expected, rngdict.getoverlapranges, (key,))
+        asserterror(expected, rngdict.getoverlaprangesets, (key,))
+    else:
+        assert(expected == rngdict.getoverlapitems(key))
+        assert([e[0] for e in expected] == rngdict.getoverlaprangesets(key))
+        assert([e[1] for e in expected] == rngdict.getoverlapranges(key))
+        assert([e[2] for e in expected] == rngdict.getoverlap(key))
+
+
+@pytest.mark.parametrize(
     "rngdict,key,default", [
         (RangeDict(), 1, "polo"),
         (RangeDict(), 1, None),
@@ -2273,4 +2321,6 @@ def test_rangedict_docstring():
 
 
 if __name__ == '__main__':
-    pass
+    test_rangedict_getoverlap(RangeDict({Range(1, 3): 2, Range(5, 7): 6}), Range(2, 6),  # two-element rangedict, two intersections
+            [([RangeSet(Range(5, 7))], RangeSet(Range(5, 7)), 6),
+             ([RangeSet(Range(1, 3))], RangeSet(Range(1, 3)), 2)])

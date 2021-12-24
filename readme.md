@@ -286,6 +286,8 @@ synergize nicely. This won't lower the complexity class below its current
 worst-case `O(n^2)`, but it could drastically improve performance.
 - Rewrite `RangeSet.isdisjoint()` to use pair-stepping and short-circuiting. The
 reasoning here is the same as for `RangeSet.intersection()`.
+- Rewrite `RangeDict.getitem()` and `RangeDict.getoverlapitems()` to use a binary 
+search, for efficiency on potentially large dicts.
 - Add pretty-printing for `RangeSet` and especially `RangeDict`. The `pprint`
 module does not seem to work on them, unfortunately.
 - Replace the `_LinkedList` data structure (contained in `_helper.py`) with an

@@ -1521,6 +1521,61 @@ class RangeDict:
                 return default
             raise
 
+    def getoverlapitems(self, rng):
+        """
+        Returns a list of 3-tuples
+        [([RangeSet1, ...], RangeSet, value), ...]
+        corresponding to every distinct rangekey of this RangeDict that
+        overlaps the given range.
+
+        In reverse order, for each tuple, that is
+          - the value corresponding to the rangeset
+          - the RangeSet corresponding to the value that intersects the given range
+          - a list of all RangeSets (of various non-mutually-comparable
+            types) that all correspond to the value. Most of the time,
+            this will be a single-element list, if only one type of Range
+            is used in the RangeDict. Otherwise, if ranges of multiple
+            types (e.g. int ranges, string ranges) correspond to the same
+            value, this list will contain all of them.
+
+        Using `.getoverlap()`, `.getoverlapranges()`, or
+        `.getoverlaprangesets()`
+        to isolate just one of those return values is
+        usually easier. This method is mainly used internally.
+        """
+        ret = []
+        for rngsets in self._rangesets:
+            # rngsets is a _LinkedList of (RangeSet, value) tuples
+            for rngset, value in rngsets:
+                try:
+                    if rngset.intersection(rng):
+                        ret.append((self._values[value], rngset, value))
+                except TypeError:
+                    break
+                # do NOT except ValueError - if `rng` is not rangelike, then error should be thrown.
+        return ret
+
+    def getoverlap(self, rng):
+        """
+        Returns a list of values corresponding to every distinct
+        rangekey of this RangeDict that overlaps the given range.
+        """
+        return [t[2] for t in self.getoverlapitems(rng)]
+
+    def getoverlapranges(self, rng):
+        """
+        Returns a list of all rangekeys in this RangeDict that intersect with
+        the given range.
+        """
+        return [t[1] for t in self.getoverlapitems(rng)]
+
+    def getoverlaprangesets(self, rng):
+        """
+        Returns a list of RangeSets corresponding to the same value as every
+        rangekey that intersects the given range.
+        """
+        return [t[0] for t in self.getoverlapitems(rng)]
+
     def getvalue(self, value):
         """
         Returns the list of RangeSets corresponding to the given value.
@@ -1797,9 +1852,19 @@ class RangeDict:
             linkedlist.gnomesort()
 
     def __setitem__(self, key, value):
+        """
+        Equivalent to `.set(key, value)`.
+        """
         self.add(key, value)
 
     def __getitem__(self, item):
+        """
+
+        Equivalent to `.get(item)`. If `item` is a range, then this will only
+        return a corresponding value if `item` is completely contained by one
+        of this RangeDict's rangekeys. To get values corresponding to all
+        overlapping ranges, use `.getoverlap(item)` instead.
+        """
         return self.get(item)
 
     def __contains__(self, item):
