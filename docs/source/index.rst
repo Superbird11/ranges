@@ -7,13 +7,11 @@
 =========================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+:maxdepth: 2
+:caption: Contents:
 
 ranges
 
-.. automodule:: ranges
-   :members:
 
 
 Indices and tables
