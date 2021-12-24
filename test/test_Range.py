@@ -2,7 +2,7 @@
 Testing the Range class
 """
 import pytest
-from ranges import Range, RangeSet
+from ranges import Range, RangeSet, Inf
 import numbers
 from decimal import Decimal
 import datetime
@@ -422,6 +422,37 @@ def test_range_length(rng, length, error_type):
         asserterror(error_type, rng.length, ())
     else:
         assert(length == rng.length())
+
+
+@pytest.mark.parametrize(
+    "rng,value,expected,error_type", [
+        # normal tests and boundary-value tests
+        (Range(1, 5), 3, 3, None),
+        (Range(1, 5), 1, 1, None),
+        (Range(1, 5), 5, 5, None),
+        (Range(1, 5), 0, 1, None),
+        (Range(1, 5), 6, 5, None),
+        (Range(1, 5), -Inf, 1, None),
+        (Range(1, 5), Inf, 5, None),
+        (Range('c', 'f'), 'depo', 'depo', None),
+        (Range('c', 'f'), 'caesium', 'caesium', None),
+        (Range('c', 'f'), 'frozen', 'f', None),
+        (Range('c', 'f'), 'b', 'c', None),
+        # infinite range tests
+        (Range(), 9173, 9173, None),
+        (Range(), 'apples', 'apples', None),
+        (Range(), None, None, None),  # the infinity object is great, it doesn't error with non-comparable types
+        (Range(), Inf, Inf, None),  # non-comparable type (None)
+        # error tests
+        (Range(1, 5), 'apple', None, TypeError),  # non-compatible type (int vs string)
+        (Range(end=1), None, None, TypeError),   # adding 1 makes it non-comparable despite being infinite
+    ]
+)
+def test_range_bind(rng, value, expected, error_type):
+    if error_type is not None:
+        asserterror(error_type, rng.bind, (value,))
+    else:
+        assert(expected == rng.bind(value))
 
 
 def test_range_docstring():

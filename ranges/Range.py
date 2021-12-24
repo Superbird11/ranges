@@ -387,6 +387,20 @@ class Range:
             # diffA has 0 elements, diffB has 1 element, e.g. (3,4) ^ (1,4) -> (1,3]
             return diff_b
 
+    def bind(self, value):
+        """
+        If this Range includes the given value, then return the value. Otherwise, return whichever
+        bind is closest to the value.
+        """
+        if value in self:
+            return value
+        elif value >= self.end:
+            return self.end
+        elif value <= self.start:
+            return self.start
+        else:
+            raise ValueError("Cannot bind() the given value to this range")
+
     def isempty(self):
         """
         Returns `True` if this range is empty (it contains no values), and
@@ -556,6 +570,9 @@ class Range:
         return self.union(other)
 
     def __and__(self, other):
+        """
+        Equivalent to self.intersect(other)
+        """
         return self.intersection(other)
 
     def __sub__(self, other):
