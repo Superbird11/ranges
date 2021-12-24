@@ -1,6 +1,10 @@
 from collections.abc import Iterable
 from numbers import Number
 from operator import is_, eq
+from typing import Union
+
+
+Rangelike = Union['Range', 'RangeSet']
 
 
 def _is_iterable_non_string(arg):

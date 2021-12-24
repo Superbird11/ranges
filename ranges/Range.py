@@ -1,6 +1,10 @@
 import re
-from ._helper import _InfiniteValue, Inf
+from ._helper import _InfiniteValue, Inf, Rangelike
 import ranges  # avoid circular imports by explicitly referring to ranges.RangeSet when needed
+from typing import Any, TypeVar, Union
+
+
+T = TypeVar('T')
 
 
 class Range:
@@ -116,12 +120,36 @@ class Range:
         `dict`.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Union['Range', str, T], **kwargs: T):
         """
         Constructs a new Range from `start` to `end`, or from an existing range.
         Is inclusive on the lower bound and exclusive on the upper bound by
         default, but can be made differently exclusive by setting the
         keywords `include_start` and `include_end` to `True` or `False`.
+
+        Can be called in the fallowing ways:
+        >>> Range(2, 5)  # two arguments, start and end respectively
+        >>> Range('[2..5)')  # one argument, of type String - resolves to a numeric range. Use '..' or ',' as separator
+        >>> Range(Range(2, 5))  # one argument, of type Range - copies the given Range
+        >>> Range(start=2, end=5)  # keyword arguments specify start and end. If not given, they default to -Inf/Inf
+        >>> Range()  # no arguments - infinite bounds by default
+
+        If using the constructor `Range('[2, 5)')`, then the created range
+        will be numeric. Otherwise, the Range may be of any comparable
+        type - numbers, strings, datetimes, etc. The default Infinite
+        bounds will safely compare with any type, even if that type would
+        not normally be comparable.
+
+        Positional arguments for `start` and `end` will take priority over
+        keyword arguments for `start` and `end`, if both are present.
+
+        Additionally, the kwargs `include_start` and `include_end` may be
+        given to toggle the exclusivity of either end of the range. By
+        default, `include_start = True` and `include_end = False`. If
+        using the constructor `Range('[2, 5)')`, the type of bracket
+        on either end indicates exclusivity - square bracket is inclusive
+        and circle bracket is exclusive. This will take priority over the
+        keyword arguments, if given.
         """
         # process kwargs
         start = kwargs.get('start', _InfiniteValue(negative=True))
@@ -201,10 +229,12 @@ class Range:
         # if self.end in (float('-inf'), float('inf')):
         #     self.include_end = False
 
-    def isdisjoint(self, rng):
+    def isdisjoint(self, rng: Rangelike) -> bool:
         """
         returns `False` if this range overlaps with the given range,
         and `True` otherwise.
+        :param rng: range to check disjointness with
+        :return: False if this range overlaps with the given range, True otherwise
         """
         # if RangeSet, return that instead
         if isinstance(rng, ranges.RangeSet):
@@ -223,7 +253,7 @@ class Range:
                 or (rng_b.start in rng_a if rng_a.end != rng_b.start else (rng_a.include_end and rng_b.include_start))
         )
 
-    def union(self, rng):
+    def union(self, rng: Rangelike) -> Union[Rangelike, None]:
         """
         If this Range and the given Range overlap, then returns a Range that
         encompasses both of them.
@@ -232,6 +262,9 @@ class Range:
         simply put both this Range and the given Range into a ranges.RangeSet).
 
         If the given range is actually a ranges.RangeSet, then returns a ranges.RangeSet.
+        :param rng: range to find union with
+        :return: A rangelike containing the union of this and the given rangelike, if they overlap or the given
+            rangelike is a RangeSet.
         """
         # if RangeSet, return union of that instead
         if isinstance(rng, ranges.RangeSet):
@@ -252,12 +285,14 @@ class Range:
         new_end = max((rng_a.end, rng_a.include_end), (rng_b.end, rng_b.include_end))
         return Range(start=new_start[0], end=new_end[0], include_start=new_start[1], include_end=new_end[1])
 
-    def intersection(self, rng):
+    def intersection(self, rng: Rangelike) -> Union[Rangelike, None]:
         """
         Returns a range representing the intersection between this range and
         the given range, or `None` if the ranges don't overlap at all.
 
         If the given range is actually a ranges.RangeSet, then returns a ranges.RangeSet.
+        :param rng: range to find intersection with
+        :return: a rangelike containing the intersection between this and the given rangelike
         """
         # if a RangeSet, then return the intersection of that with this instead.
         if isinstance(rng, ranges.RangeSet):
@@ -287,7 +322,7 @@ class Range:
         # create and return new range
         return Range(start=new_start[0], end=new_end[0], include_start=new_start[1], include_end=new_end[1])
 
-    def difference(self, rng):
+    def difference(self, rng: Rangelike) -> Union[Rangelike, None]:
         """
         Returns a range containing all elements of this range that are not
         within the other range, or `None` if this range is entirely consumed
@@ -301,6 +336,8 @@ class Range:
 
         If the given range is actually a ranges.RangeSet, then returns a ranges.RangeSet
         no matter what.
+        :param rng: rangelike to find the difference with
+        :return: a rangelike containing the difference between this and the given rangelike
         """
         # if a RangeSet, then return the intersection of one of those with this instead.
         if isinstance(rng, ranges.RangeSet):
@@ -343,7 +380,7 @@ class Range:
                             include_start=not rng.include_end, include_end=self.include_end)
             return None if new_rng.isempty() else new_rng
 
-    def symmetric_difference(self, rng):
+    def symmetric_difference(self, rng: Rangelike) -> Union[Rangelike, None]:
         """
         Returns a Range (if possible) or ranges.RangeSet (if not) of ranges
         comprising the parts of this Range and the given Range that
@@ -354,6 +391,8 @@ class Range:
 
         If the given range is actually a ranges.RangeSet, then returns a ranges.RangeSet
         no matter what.
+        :param rng: rangelike object to find the symmetric difference with
+        :return: a rangelike object containing the symmetric difference between this and the given rangelike
         """
         # if a RangeSet, then return the symmetric difference of one of those with this instead.
         if isinstance(rng, ranges.RangeSet):
@@ -387,10 +426,12 @@ class Range:
             # diffA has 0 elements, diffB has 1 element, e.g. (3,4) ^ (1,4) -> (1,3]
             return diff_b
 
-    def bind(self, value):
+    def clamp(self, value: T) -> T:
         """
         If this Range includes the given value, then return the value. Otherwise, return whichever
-        bind is closest to the value.
+        bound is closest to the value.
+        :param value: value to restrict to the borders of this range
+        :return: the given value if it is in the range, or whichever border is closest to the value otherwise
         """
         if value in self:
             return value
@@ -399,23 +440,27 @@ class Range:
         elif value <= self.start:
             return self.start
         else:
-            raise ValueError("Cannot bind() the given value to this range")
+            raise ValueError("Cannot clamp() the given value to this range")
 
-    def isempty(self):
+    def isempty(self) -> bool:
         """
         Returns `True` if this range is empty (it contains no values), and
         `False` otherwise.
 
         In essence, will only return `True` if `start == end` and either end
         is exclusive.
+        :return: True if this range contains no values. False otherwise
         """
         return self.start == self.end and (not self.include_start or not self.include_end)
 
-    def copy(self):
-        """ Returns a copy of this object, identical to calling `Range(self)` """
+    def copy(self) -> 'Range':
+        """
+        Copies this range, without modifying it.
+        :return: a copy of this object, identical to calling `Range(self)`
+        """
         return Range(self)
 
-    def length(self):
+    def length(self) -> Union[T, Any]:
         """
         Returns the size of this range (`end - start`), irrespective of whether
         either end is inclusive.
@@ -432,6 +477,7 @@ class Range:
         `ArithmeticError`, or `ValueError` on failed subtraction. If not,
         whatever exception they raise will improperly handled by this method,
         and will thus be raised instead.
+        :return: `end` - `start` for this range
         """
         # try normally
         try:
@@ -451,13 +497,21 @@ class Range:
                 pass
         raise TypeError(f"Range of {self.start.__class__} to {self.end.__class__} has no defined length")
 
-    def isinfinite(self):
+    def isinfinite(self) -> bool:
         """
-        Returns True if this Range has a negative bound of -Inf or a positive bound of +Inf
+        Returns True if this Range has a negative bound equal to -Inf or a positive bound equal to +Inf
+        :return True if this Range has a negative bound equal to -Inf or a positive bound equal to +Inf
         """
         return self.start == -Inf or self.end == Inf
 
-    def _above_start(self, item):
+    def _above_start(self, item: Union['Range', T]) -> bool:
+        """
+        Returns True if the given item is greater than or equal to this Range's start,
+        depending on whether this Range is set to include the start.
+        If the given item is a Range, tests that range's .start.
+        :param item: item to test against start
+        :return: True if the given item is greater than or equal to this Range's start
+        """
         if isinstance(item, Range):
             if self.include_start or self.include_start == item.include_start:
                 return item.start >= self.start
@@ -468,7 +522,14 @@ class Range:
         else:
             return item > self.start
 
-    def _below_end(self, item):
+    def _below_end(self, item: Union['Range', T]) -> bool:
+        """
+        Returns True if the given item is less than or equal to this Range's end,
+        depending on whether this Range is set to include the end.
+        If the given item is a Range, tests that range's .end.
+        :param item: item to test against end
+        :return: True if the given item is less than or equal to this Range's end
+        """
         if isinstance(item, Range):
             if self.include_end or self.include_end == item.include_end:
                 return item.end <= self.end
@@ -479,11 +540,13 @@ class Range:
         else:
             return item < self.end
 
-    def __eq__(self, obj):
+    def __eq__(self, obj: Rangelike) -> bool:
         """
         Compares the start and end of this range to the other range, along with
-        inclusivity ateither end. Returns `True` if everything is the same, or
-        `False` otherwise.
+        inclusivity at either end. Returns `True` if everything is the same, or
+        `False` otherwise. If the other object is a RangeSet, uses the other object's
+        __eq__() instead. Always returns False if the other object is not rangelike.
+        :return: True if the given object is equal to this Range.
         """
         if isinstance(obj, ranges.RangeSet):
             return obj == self
@@ -493,7 +556,7 @@ class Range:
         except AttributeError:
             return False
 
-    def __lt__(self, obj):
+    def __lt__(self, obj: Rangelike) -> bool:
         """
         Used for ordering, not for subranging/subsetting. Compares attributes in
         the following order, returning True/False accordingly:
@@ -501,6 +564,7 @@ class Range:
         2. include_start (inclusive < exclusive)
         3. end
         4. include_end (exclusive < inclusive)
+        :return: True if this range should be ordered before the given rangelike object, False otherwise
         """
         if isinstance(obj, ranges.RangeSet):
             return obj > self
@@ -518,7 +582,7 @@ class Range:
                 raise TypeError("'<' not supported between instances of "
                                 f"'{self.__class__.__name__}' and '{obj.__class__.__name__}'")
 
-    def __gt__(self, obj):
+    def __gt__(self, obj: Rangelike) -> bool:
         """
         Used for ordering, not for subranging/subsetting. Compares attributes in
         the following order, returning True/False accordingly:
@@ -526,6 +590,7 @@ class Range:
         2. include_start (inclusive < exclusive)
         3. end
         4. include_end (exclusive < inclusive)
+        :return: True if this range should be ordered after the given rangelike object, False otherwise
         """
         if isinstance(obj, ranges.RangeSet):
             return obj < self
@@ -543,51 +608,62 @@ class Range:
                 raise TypeError("'<' not supported between instances of "
                                 f"'{self.__class__.__name__}' and '{obj.__class__.__name__}'")
 
-    def __ge__(self, obj):
+    def __ge__(self, obj: Rangelike) -> bool:
         """
         Used for ordering, not for subranging/subsetting. See docstrings for
         __eq__() and __gt__().
+        :return: True if this range is equal to or should be ordered after the given rangelike object. False otherwise.
         """
         return self > obj or self == obj
 
-    def __le__(self, obj):
+    def __le__(self, obj: Rangelike) -> bool:
         """
         Used for ordering, not for subranging/subsetting. See docstrings for
         __eq__() and __lt__().
+        :return: True if this range is equal to or should be ordered before the given rangelike object. False otherwise.
         """
         return self < obj or self == obj
 
-    def __ne__(self, obj):
+    def __ne__(self, obj: Rangelike) -> bool:
         """
         See docstring for __eq__(). Returns the opposite of that.
+        :return: False if this range is equal to the given rangelike object. True otherwise.
         """
         return not self == obj
 
-    def __or__(self, other):
+    def __or__(self, other: Rangelike) -> Union[Rangelike, None]:
         """
         Equivalent to self.union(other)
+        :param other: rangelike to union
+        :return: a rangelike object containing both this range and the given rangelike object
         """
         return self.union(other)
 
-    def __and__(self, other):
+    def __and__(self, other: Rangelike) -> Union[Rangelike, None]:
         """
         Equivalent to self.intersect(other)
+        :param other: rangelike to intersect
+        :return: a rangelike object containing the overlap between this range and the given rangelike object
         """
         return self.intersection(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other: Rangelike) -> Union[Rangelike, None]:
         """
         Equivalent to self.difference(other)
+        :param other: rangelike to find difference with
+        :return: a rangelike object containing everything in this range but not in the given rangelike object
         """
         return self.difference(other)
 
-    def __xor__(self, other):
+    def __xor__(self, other: Rangelike) -> Union[Rangelike, None]:
         """
         Equivalent to self.symmetric_difference(other)
+        :param other: rangelike to find symmetric difference with
+        :return: a rangelike object containing everything in either this range or the given rangelike, but not both
         """
         return self.symmetric_difference(other)
 
-    def __contains__(self, item):
+    def __contains__(self, item: T) -> bool:
         """
         Returns `True` if the given item is inside the bounds of this range,
         `False` if it isn't.
@@ -598,6 +674,8 @@ class Range:
         if it isn't.
 
         A Range always contains itself.
+        :param item: item to check if is contained
+        :return: True if the item is within the bounds of this range. False otherwise
         """
         if self == item:
             return True
@@ -625,5 +703,8 @@ class Range:
         return f"Range{'[' if self.include_start else '('}{repr(self.start)}, " \
                f"{repr(self.end)}{']' if self.include_end else ')'}"
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """
+        :return: False if this range is empty, True otherwise
+        """
         return not self.isempty()

@@ -448,11 +448,11 @@ def test_range_length(rng, length, error_type):
         (Range(end=1), None, None, TypeError),   # adding 1 makes it non-comparable despite being infinite
     ]
 )
-def test_range_bind(rng, value, expected, error_type):
+def test_range_clamp(rng, value, expected, error_type):
     if error_type is not None:
-        asserterror(error_type, rng.bind, (value,))
+        asserterror(error_type, rng.clamp, (value,))
     else:
-        assert(expected == rng.bind(value))
+        assert(expected == rng.clamp(value))
 
 
 def test_range_docstring():
