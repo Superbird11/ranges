@@ -422,6 +422,28 @@ def test_range_length(rng, length, error_type):
         asserterror(error_type, rng.length, ())
     else:
         assert(length == rng.length())
+        
+
+@pytest.mark.parametrize(
+    "rng,expected", [
+        (Range(), RangeSet()),  # complement of an infinite range is a range with no elements
+        (Range('(5..5)'), RangeSet(Range())),  # complement of an empty range is an infinite range
+        (Range('(5..5]'), RangeSet(Range())),
+        (Range('[5..5)'), RangeSet(Range())),
+        (Range('[5..5]'), RangeSet(Range(end=5), Range(start=5, include_start=False))),  # complement of single point
+        (Range(1, 3), RangeSet(Range(end=1), Range(start=3))),  # complement of normal range
+        (Range('[2..3]'), RangeSet(Range('[-inf, 2)'), Range('(3, inf)'))),  # complement of normal range, bounds-check
+        (Range('(2..3)'), RangeSet(Range('[-inf, 2]'), Range('[3, inf)'))),
+        (Range(end=-1), RangeSet(Range(start=-1))),  # complement of one-side-infinite range
+        (Range(end=-1, include_end=True), RangeSet(Range(start=-1, include_start=False))),
+        (Range(start=1, include_start=False), RangeSet(Range(end=1, include_end=True))),
+        (Range(start=1), RangeSet(Range(end=1))),
+        (Range('inquisition', 'spanish'), RangeSet(Range(end='inquisition'), Range(start='spanish'))),  # non-numeric
+        (Range('e', 'e', include_start=False), RangeSet(Range())),
+    ]
+)
+def test_range_complement(rng, expected):
+    assert(expected == rng.complement())
 
 
 @pytest.mark.parametrize(

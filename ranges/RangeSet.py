@@ -1,10 +1,10 @@
 from .Range import Range
 from collections.abc import Iterable
 from ._helper import _is_iterable_non_string, _LinkedList, Inf, Rangelike
-from typing import TypeVar, Iterator, Union
+from typing import TypeVar, Iterator, Union, Any
 
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Any)
 
 
 class RangeSet(Iterable):
@@ -364,6 +364,13 @@ class RangeSet(Iterable):
         """
         self._ranges = _LinkedList()
 
+    def complement(self) -> 'RangeSet':
+        """
+        Returns a RangeSet containing all items not present in this RangeSet
+        :return: the complement of this RangeSet
+        """
+        return RangeSet(Range()) - self
+
     def isempty(self) -> bool:
         """
         Returns True if this RangeSet contains no values, and False otherwise
@@ -373,7 +380,7 @@ class RangeSet(Iterable):
 
     def copy(self) -> 'RangeSet':
         """
-        returns a shallow copy of this RangeSet
+        Returns a shallow copy of this RangeSet
         :return: a shallow copy of this RangeSet
         """
         return RangeSet(self)

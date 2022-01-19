@@ -4,7 +4,8 @@ import ranges  # avoid circular imports by explicitly referring to ranges.RangeS
 from typing import Any, TypeVar, Union
 
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Any)
+_sentinel = object()
 
 
 class Range:
@@ -120,7 +121,14 @@ class Range:
         `dict`.
     """
 
-    def __init__(self, *args: Union['Range', RangelikeString, T], **kwargs: T):
+    start: T
+    end: T
+    include_start: bool
+    include_end: bool
+
+    def __init__(self, *args: Union['Range', RangelikeString, T],
+                 start: T = _sentinel, end: T = _sentinel,
+                 include_start: bool = _sentinel, include_end: bool = _sentinel):
         """
         Constructs a new Range from `start` to `end`, or from an existing range.
         Is inclusive on the lower bound and exclusive on the upper bound by
@@ -152,10 +160,10 @@ class Range:
         keyword arguments, if given.
         """
         # process kwargs
-        start = kwargs.get('start', _InfiniteValue(negative=True))
-        end = kwargs.get('end', _InfiniteValue(negative=False))
-        include_start = kwargs.get('include_start', True)
-        include_end = kwargs.get('include_end', False)
+        start = _InfiniteValue(negative=True) if start is _sentinel else start
+        end = _InfiniteValue(negative=False) if end is _sentinel else end
+        include_start = True if include_start is _sentinel else include_start
+        include_end = False if include_end is _sentinel else include_end
         self.include_start = include_start
         self.include_end = include_end
         # Check how many positional args we got, and initialize accordingly
@@ -426,6 +434,13 @@ class Range:
             # diffA has 0 elements, diffB has 1 element, e.g. (3,4) ^ (1,4) -> (1,3]
             return diff_b
 
+    def complement(self) -> 'ranges.RangeSet':
+        """
+        Returns a RangeSet containing all items not present in this Range
+        :return: the complement of this Range
+        """
+        return ranges.RangeSet(Range()) - self
+
     def clamp(self, value: T) -> T:
         """
         If this Range includes the given value, then return the value. Otherwise, return whichever
@@ -551,9 +566,11 @@ class Range:
         if isinstance(obj, ranges.RangeSet):
             return obj == self
         try:
+            if not isinstance(obj, Range):
+                obj = Range(obj)
             return (self.start, self.end, self.include_start, self.include_end) == \
                    (obj.start, obj.end, obj.include_start, obj.include_end)
-        except AttributeError:
+        except (AttributeError, ValueError):
             return False
 
     def __lt__(self, obj: Rangelike) -> bool:

@@ -392,6 +392,34 @@ def test_rangeset_symdiff(rngset, to_symdiff, before, after, error_type):
 
 
 @pytest.mark.parametrize(
+    "rngset,expected", [
+        # testcases from Range
+        (RangeSet(Range()), RangeSet()),  # complement of an infinite range is a range with no elements
+        (RangeSet(Range('(5..5)')), RangeSet(Range())),  # complement of an empty range is an infinite range
+        (RangeSet(Range('(5..5]')), RangeSet(Range())),
+        (RangeSet(Range('[5..5)')), RangeSet(Range())),
+        (RangeSet(Range('[5..5]')), RangeSet(Range(end=5), Range(start=5, include_start=False))),  # single point
+        (RangeSet(Range(1, 3)), RangeSet(Range(end=1), Range(start=3))),  # complement of normal range
+        (RangeSet(Range('[2..3]')), RangeSet(Range('[-inf, 2)'), Range('(3, inf)'))),  # normal range, bounds-check
+        (RangeSet(Range('(2..3)')), RangeSet(Range('[-inf, 2]'), Range('[3, inf)'))),
+        (RangeSet(Range(end=-1)), RangeSet(Range(start=-1))),  # complement of one-side-infinite range
+        (RangeSet(Range(end=-1, include_end=True)), RangeSet(Range(start=-1, include_start=False))),
+        (RangeSet(Range(start=1, include_start=False)), RangeSet(Range(end=1, include_end=True))),
+        (RangeSet(Range(start=1)), RangeSet(Range(end=1))),
+        (RangeSet(Range('inquisition', 'spanish')), RangeSet(Range(end='inquisition'), Range(start='spanish'))),
+        (RangeSet(Range('e', 'e', include_start=False)), RangeSet(Range())),
+        # new testcases for RangeSet
+        (RangeSet(), RangeSet(Range())),
+        (RangeSet('[1, 2)', '[3, 4)', '(5, 6)'), RangeSet('[-inf, 1)', '[2, 3)', '[4, 5]', '[6, inf)')),
+    ]
+)
+def test_rangeset_complement(rngset, expected):
+    assert(expected == rngset.complement())
+    rngset.popempty()
+    assert(rngset == expected.complement())
+
+
+@pytest.mark.parametrize(
     "rng1,rng2,isdisjoint,error_type", [
         # test cases carried over from Range.isdisjoint()
         (RangeSet(Range(1, 3)), Range(2, 4), False, None),

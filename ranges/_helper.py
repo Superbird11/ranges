@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from numbers import Number
 from operator import eq  # , is_
-from typing import Union, NewType
+from typing import Union, TypeVar
 
 
 r""" 
@@ -11,7 +11,7 @@ all whitespace. In human-readable form, that's `[start..end]`, where both `start
 and `end` should be numbers, either square or round brackets may be used, and either
 `..` or `,` may be used as the separator in the middle.
 """
-RangelikeString = NewType('RangelikeString', str)
+RangelikeString = TypeVar('RangelikeString', bound=str)
 
 """ Type hint to denote a range-like object - either a Range, RangeSet, or a string that can be parsed as a range """
 Rangelike = Union['Range', 'RangeSet', RangelikeString]

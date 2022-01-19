@@ -4,8 +4,8 @@ from .Range import Range
 from .RangeSet import RangeSet
 from typing import Iterable, Union, Any, TypeVar, List, Tuple
 
-T = TypeVar('T')
-V = TypeVar('V')
+T = TypeVar('T', bound=Any)
+V = TypeVar('V', bound=Any)
 
 
 class RangeDict:
