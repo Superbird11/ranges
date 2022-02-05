@@ -128,7 +128,7 @@ class Range:
 
     def __init__(self, *args: Union['Range', RangelikeString, T],
                  start: T = _sentinel, end: T = _sentinel,
-                 include_start: bool = _sentinel, include_end: bool = _sentinel):
+                 include_start: bool = True, include_end: bool = False):
         """
         Constructs a new Range from `start` to `end`, or from an existing range.
         Is inclusive on the lower bound and exclusive on the upper bound by
@@ -162,8 +162,6 @@ class Range:
         # process kwargs
         start = _InfiniteValue(negative=True) if start is _sentinel else start
         end = _InfiniteValue(negative=False) if end is _sentinel else end
-        include_start = True if include_start is _sentinel else include_start
-        include_end = False if include_end is _sentinel else include_end
         self.include_start = include_start
         self.include_end = include_end
         # Check how many positional args we got, and initialize accordingly
