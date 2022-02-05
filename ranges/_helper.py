@@ -1,11 +1,10 @@
-from collections.abc import Iterable
 from numbers import Number
 from operator import eq  # , is_
-from typing import Union, TypeVar
+from typing import Any, Iterable, Union, TypeVar
 
 
-r""" 
-Type hint for the specific type of string that can be parsed as a range. 
+r"""
+Type hint for the specific type of string that can be parsed as a range.
 Essentially, must conform to regex `r'[\(\[]\d+(?:\.\.|,)\d+[\)\]]'`, ignoring
 all whitespace. In human-readable form, that's `[start..end]`, where both `start`
 and `end` should be numbers, either square or round brackets may be used, and either
@@ -137,7 +136,9 @@ class _InfiniteValue(Number):
 Inf = _InfiniteValue()
 
 
-class _LinkedList(Iterable):
+T = TypeVar('T', bound=Any)
+
+class _LinkedList(Iterable[T]):
     """
     A custom definition of a single, feature-poor, linked-list.
     """

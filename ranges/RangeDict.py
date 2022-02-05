@@ -2,7 +2,7 @@ from operator import is_
 from ._helper import _UnhashableFriendlyDict, _LinkedList, _is_iterable_non_string, Rangelike
 from .Range import Range
 from .RangeSet import RangeSet
-from typing import Iterable, Union, Any, TypeVar, List, Tuple
+from typing import Iterable, Union, Any, TypeVar, List, Tuple, Dict, Tuple
 
 T = TypeVar('T', bound=Any)
 V = TypeVar('V', bound=Any)
@@ -130,7 +130,7 @@ class RangeDict:
     # sentinel for checking whether an arg was passed, where anything is valid including None
     _sentinel = object()
 
-    def __init__(self, iterable: Union['RangeDict', dict[Rangelike, V], Iterable[tuple[Rangelike, V]]] = _sentinel,
+    def __init__(self, iterable: Union['RangeDict', Dict[Rangelike, V], Iterable[Tuple[Rangelike, V]]] = _sentinel,
                  *, identity=False):
         """
         Initialize a new RangeDict from the given iterable. The given iterable
@@ -279,7 +279,7 @@ class RangeDict:
         # singleton _LinkedList containing just (rng, value), appended to self._rangesets
         self._rangesets.append(_LinkedList(((rng, value),)))
 
-    def update(self, iterable: Union['RangeDict', dict[Rangelike, V], Iterable[tuple[Rangelike, V]]]) -> None:
+    def update(self, iterable: Union['RangeDict', Dict[Rangelike, V], Iterable[Tuple[Rangelike, V]]]) -> None:
         """
         Adds the contents of the given iterable (either another RangeDict, a
         `dict` mapping Range-like objects to values, or a list of 2-tuples
@@ -293,7 +293,7 @@ class RangeDict:
             for rngset in rangesets:
                 self.add(rngset, value)
 
-    def getitem(self, item: T) -> tuple[list[RangeSet], RangeSet, Range, V]:
+    def getitem(self, item: T) -> Tuple[List[RangeSet], RangeSet, Range, V]:
         """
         Returns both the value corresponding to the given item, the Range
         containing it, and the set of other contiguous ranges that would
@@ -334,7 +334,7 @@ class RangeDict:
                     break
         raise KeyError(f"'{item}' was not found in any range")
 
-    def getrangesets(self, item: T) -> list[RangeSet]:
+    def getrangesets(self, item: T) -> List[RangeSet]:
         """
         Finds the value to which the given item corresponds in this RangeDict,
         and then returns a list of all RangeSets in this RangeDict that
@@ -402,7 +402,7 @@ class RangeDict:
                 return default
             raise
 
-    def getoverlapitems(self, rng: Rangelike) -> list[tuple[list[RangeSet], RangeSet, V]]:
+    def getoverlapitems(self, rng: Rangelike) -> List[Tuple[List[RangeSet], RangeSet, V]]:
         """
         Returns a list of 3-tuples
         [([RangeSet1, ...], RangeSet, value), ...]
@@ -438,7 +438,7 @@ class RangeDict:
                 # do NOT except ValueError - if `rng` is not rangelike, then error should be thrown.
         return ret
 
-    def getoverlap(self, rng: Rangelike) -> list[V]:
+    def getoverlap(self, rng: Rangelike) -> List[V]:
         """
         Returns a list of values corresponding to every distinct
         rangekey of this RangeDict that overlaps the given range.
@@ -447,7 +447,7 @@ class RangeDict:
         """
         return [t[2] for t in self.getoverlapitems(rng)]
 
-    def getoverlapranges(self, rng: Rangelike) -> list[RangeSet]:
+    def getoverlapranges(self, rng: Rangelike) -> List[RangeSet]:
         """
         Returns a list of all rangekeys in this RangeDict that intersect with
         the given range.
@@ -456,7 +456,7 @@ class RangeDict:
         """
         return [t[1] for t in self.getoverlapitems(rng)]
 
-    def getoverlaprangesets(self, rng: Rangelike) -> list[list[RangeSet]]:
+    def getoverlaprangesets(self, rng: Rangelike) -> List[List[RangeSet]]:
         """
         Returns a list of RangeSets corresponding to the same value as every
         rangekey that intersects the given range.
@@ -465,7 +465,7 @@ class RangeDict:
         """
         return [t[0] for t in self.getoverlapitems(rng)]
 
-    def getvalue(self, value: V) -> list[RangeSet]:
+    def getvalue(self, value: V) -> List[RangeSet]:
         """
         Returns the list of RangeSets corresponding to the given value.
 
@@ -515,7 +515,7 @@ class RangeDict:
         for rngset in rangesets:
             self.add(rngset, new_value)
 
-    def popitem(self, item: T) -> tuple[list[RangeSet], RangeSet, Range, V]:
+    def popitem(self, item: T) -> Tuple[List[RangeSet], RangeSet, Range, V]:
         """
         Returns the value corresponding to the given item, the Range containing
         it, and the set of other contiguous ranges that would have also yielded
@@ -564,7 +564,7 @@ class RangeDict:
                     break
         raise KeyError(f"'{item}' was not found in any range")
 
-    def poprangesets(self, item: T) -> list[RangeSet]:
+    def poprangesets(self, item: T) -> List[RangeSet]:
         """
         Finds the value to which the given item corresponds, and returns the
         list of RangeSets that correspond to that value (see
@@ -634,7 +634,7 @@ class RangeDict:
                 return default
             raise
 
-    def popvalue(self, value: V) -> list[RangeSet]:
+    def popvalue(self, value: V) -> List[RangeSet]:
         """
         Removes all ranges corresponding to the given value from this RangeDict,
         as well as the value itself. Returns a list of all the RangeSets of
@@ -711,7 +711,7 @@ class RangeDict:
         """
         return not self._values
 
-    def ranges(self) -> list[RangeSet]:
+    def ranges(self) -> List[RangeSet]:
         """
         Returns a list of RangeSets that correspond to some value in this
         RangeDict, ordered as follows:
@@ -727,7 +727,7 @@ class RangeDict:
         """
         return [rngset for rngsetlist in self._rangesets for rngset, value in rngsetlist]
 
-    def values(self) -> list[V]:
+    def values(self) -> List[V]:
         """
         Returns a list of values that are corresponded to by some RangeSet in
         this RangeDict, ordered by how recently they were added (via .`add()`

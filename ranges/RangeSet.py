@@ -1,7 +1,6 @@
 from .Range import Range
-from collections.abc import Iterable
 from ._helper import _is_iterable_non_string, _LinkedList, Inf, Rangelike
-from typing import TypeVar, Iterator, Union, Any
+from typing import TypeVar, Iterable, Iterator, Union, Any, List
 
 
 T = TypeVar('T', bound=Any)
@@ -351,7 +350,7 @@ class RangeSet(Iterable):
             raise IndexError(f"'{item}' could not be isolated")
         raise IndexError(f"'{item}' is not in this RangeSet")
 
-    def ranges(self) -> list[Range]:
+    def ranges(self) -> List[Range]:
         """
         Returns a `list` of the Range objects that this RangeSet contains
         :return: the Ranges that make up this RangeSet
