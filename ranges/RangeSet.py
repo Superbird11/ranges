@@ -1,3 +1,4 @@
+from contextlib import suppress
 from .Range import Range
 from ._helper import _is_iterable_non_string, _LinkedList, Inf, Rangelike
 from typing import TypeVar, Iterable, Iterator, Union, Any, List
@@ -448,17 +449,13 @@ class RangeSet(Iterable):
         """
         if self == item:
             return True
-        try:
+        with suppress(TypeError):
             if _is_iterable_non_string(item):
-                try:
+                with suppress(ValueError):
                     return all(
                         any(subitem in rng for rng in self._ranges)
                         for subitem in RangeSet._to_rangeset(item)
                     )
-                except ValueError:
-                    pass
-        except TypeError:
-            pass
         return any(item in rng for rng in self._ranges)
 
     def __eq__(self, other: Union[Range, 'RangeSet']) -> bool:

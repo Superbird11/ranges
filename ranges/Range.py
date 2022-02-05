@@ -1,3 +1,4 @@
+from contextlib import suppress
 import re
 from ._helper import _InfiniteValue, Inf, Rangelike, RangelikeString
 import ranges  # avoid circular imports by explicitly referring to ranges.RangeSet when needed
@@ -493,21 +494,17 @@ class Range:
         :return: `end` - `start` for this range
         """
         # try normally
-        try:
+        with suppress(TypeError, ArithmeticError, ValueError):
             return self.end - self.start
-        except (TypeError, ArithmeticError, ValueError) as _:
-            pass
+
         if not isinstance(self.start, self.end.__class__):
             # try one-way conversion
-            try:
+            with suppress(TypeError, ArithmeticError, ValueError):
                 return self.end - self.end.__class__(self.start)
-            except (TypeError, ArithmeticError, ValueError) as _:
-                pass
             # try the other-way conversion
-            try:
+            with suppress(TypeError, ArithmeticError, ValueError):
                 return self.start.__class__(self.end) - self.start
-            except (TypeError, ArithmeticError, ValueError) as _:
-                pass
+
         raise TypeError(f"Range of {self.start.__class__} to {self.end.__class__} has no defined length")
 
     def isinfinite(self) -> bool:
