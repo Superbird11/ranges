@@ -697,11 +697,9 @@ class Range:
             try:
                 return self._above_start(item) and self._below_end(item)
             except TypeError:
-                try:
+                with suppress(ValueError):
                     rng_item = Range(item)
                     return rng_item.start in self and rng_item.end in self
-                except ValueError:
-                    pass
                 raise TypeError(f"'{item}' is not comparable with this Range's start and end")
 
     def __hash__(self):

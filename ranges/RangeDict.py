@@ -1,3 +1,4 @@
+from contextlib import suppress
 from operator import is_
 from ._helper import _UnhashableFriendlyDict, _LinkedList, _is_iterable_non_string, Rangelike
 from .Range import Range
@@ -222,11 +223,9 @@ class RangeDict:
             # rngsetlist is a tuple (_LinkedList(ranges), value)
             for rngset in rngsetlist:
                 # rngset
-                try:
+                with suppress(TypeError):
                     rngset[0].discard(rng)
                     short_circuit = True  # (naively) assume only one type of rngset will be compatible
-                except TypeError:
-                    pass
             if short_circuit:
                 self.popempty()
                 break
@@ -237,7 +236,7 @@ class RangeDict:
             # existing_rangesets is a list (not _LinkedList) of RangeSets that correspond to value.
             # if there's already a whole RangeSet pointing to value, then simply add to that RangeSet
             for rngset in existing_rangesets:
-                try:
+                with suppress(TypeError):
                     # ...once we find the RangeSet of the right type
                     rngset.add(rng)
                     # And then bubble it into place in whichever _LinkedList would have contained it.
@@ -248,8 +247,6 @@ class RangeDict:
                     # And short-circuit, since we've already dealt with the complications and don't need to
                     #   do any further modification of _values or _rangesets
                     return
-                except TypeError:
-                    pass
             # if we didn't find a RangeSet of the right type, then we must add rng as a new RangeSet of its own type.
             # add a reference in _values
             self._values[value].append(rng)
@@ -261,7 +258,7 @@ class RangeDict:
         for rngsetlist in self._rangesets:
             # rngsetlist is a _LinkedList of (RangeSet, value) tuples
             # [(rangeset0, value0), (rangeset1, value1), ...]
-            try:
+            with suppress(TypeError):
                 # "try" == "assess comparability with the rest of the RangeSets in this _LinkedList".
                 # This is checked via trying to execute a dummy comparison with the first RangeSet in this category,
                 #   and seeing if it throws a TypeError.
@@ -273,8 +270,6 @@ class RangeDict:
                 rngsetlist.append((rng, value))
                 rngsetlist.gnomesort()
                 return
-            except TypeError:
-                pass
         # if no existing rangeset accepted it, then we need to add one.
         # singleton _LinkedList containing just (rng, value), appended to self._rangesets
         self._rangesets.append(_LinkedList(((rng, value),)))
