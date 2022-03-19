@@ -462,6 +462,13 @@ class RangeSet(Iterable):
             pass
         return any(item in rng for rng in self._ranges)
 
+    def __invert__(self) -> 'RangeSet':
+        """
+        Equivalent to self.complement()
+        :return: a RangeSet containing everything that is not in this RangeSet
+        """
+        return self.complement()
+
     def __eq__(self, other: Union[Range, 'RangeSet']) -> bool:
         """
         Returns True if this RangeSet's ranges exactly match the other

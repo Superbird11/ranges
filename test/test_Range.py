@@ -444,6 +444,7 @@ def test_range_length(rng, length, error_type):
 )
 def test_range_complement(rng, expected):
     assert(expected == rng.complement())
+    assert(expected == ~rng)
 
 
 @pytest.mark.parametrize(

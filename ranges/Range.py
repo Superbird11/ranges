@@ -680,6 +680,13 @@ class Range:
         """
         return self.symmetric_difference(other)
 
+    def __invert__(self) -> 'RangeSet':
+        """
+        Equivalent to self.complement()
+        :return: a RangeSet containing everything that is not in this Range
+        """
+        return self.complement()
+
     def __contains__(self, item: T) -> bool:
         """
         Returns `True` if the given item is inside the bounds of this range,
