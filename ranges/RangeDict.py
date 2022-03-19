@@ -216,6 +216,11 @@ class RangeDict:
             raise TypeError("argument 'rng' for .add() must be able to be converted to a RangeSet")
         if rng.isempty():
             return
+        # special case: if we try to add a perfectly infinite range, then completely empty this rangeset
+        # and add this as the only element (since it will subsume everything else anyway)
+        if rng.containseverything():
+            self._rangesets.clear()
+            self._values.clear()
         # first, remove this range from any existing range
         short_circuit = False
         for rngsetlist in self._rangesets:
@@ -237,6 +242,8 @@ class RangeDict:
             # existing_rangesets is a list (not _LinkedList) of RangeSets that correspond to value.
             # if there's already a whole RangeSet pointing to value, then simply add to that RangeSet
             for rngset in existing_rangesets:
+                if len(existing_rangesets) > 1 and rngset.containseverything():
+                    continue
                 try:
                     # ...once we find the RangeSet of the right type
                     rngset.add(rng)
@@ -245,6 +252,7 @@ class RangeDict:
                     #   for the one we really want. A little time loss but not that much. Especially not
                     #   any extra timeloss for single-typed RangeDicts.
                     self._sort_ranges()
+                    self._coalesce_infinite_ranges()
                     # And short-circuit, since we've already dealt with the complications and don't need to
                     #   do any further modification of _values or _rangesets
                     return
@@ -272,12 +280,81 @@ class RangeDict:
                 # Add it, bubble it to sorted order via .gnomesort(), and return.
                 rngsetlist.append((rng, value))
                 rngsetlist.gnomesort()
+                self._coalesce_infinite_ranges()
                 return
             except TypeError:
                 pass
         # if no existing rangeset accepted it, then we need to add one.
         # singleton _LinkedList containing just (rng, value), appended to self._rangesets
         self._rangesets.append(_LinkedList(((rng, value),)))
+        self._coalesce_infinite_ranges()
+
+    def adddefault(self, rng: Rangelike, value: V) -> None:
+        """
+        Add a single Range/Rangeset to correspond to the given value.
+        If the given range overlaps with an existing rangekey, the
+        existing rangekey takes precedence.
+
+        To add a list of multiple Ranges of different types, use `.update()`
+        instead. Using this method instead will produce a `TypeError`.
+
+        If an empty Range is given, then this method does nothing.
+
+        If a range is given that contains everything (regardless of whether
+        its infinite endpoints are inclusive or exclusive), then the 'default'
+        value for all types of ranges currently contained in this RangeDict
+        will be made to correspond to the given value (no ranges of new types
+        will be added, and types that were previously incompatible with this
+        RangeDict's contents will remain that way).
+
+        :param rng: Rangekey to add
+        :param value: value to add corresponding to the given Rangekey
+        """
+        # copy the range and get it into an easy-to-work-with form
+        try:
+            rng = RangeSet(rng)
+        except TypeError:
+            raise TypeError("argument 'rng' for .adddefault() must be able to be converted to a RangeSet")
+        if rng.isempty():
+            return
+        # special case: if the range is both infinite and typeless
+        # in this case, instead of finding all differences from rng, we must
+        # find all differences _for each type of rangeset_ in this dict.
+        if rng.containseverything():
+            if self.isempty():
+                self.add(rng, value)
+                return
+            i = 0
+            while i < len(self._rangesets):
+                rngsetlist = self._rangesets[i]
+                i += 1
+                # rngsetlist is a _LinkedList of (RangeSet, value) tuples
+                # [(rangeset0, value0), (rangeset1, value1), ...]
+                r = rng.copy()
+                for rngset, _ in rngsetlist:
+                    r.difference_update(rngset)
+                    if r.isempty():
+                        break
+                if not r.isempty():
+                    self.add(r, value)
+                    i -= 1
+            return
+        # if range is not infinite and typeless, then
+        # remove all ranges that currently exist from the given range
+        # (ignoring ranges that conflict in type)
+        for rngsetlist in self._rangesets:
+            # rngsetlist is a _LinkedList of (RangeSet, value) tuples
+            # [(rangeset0, value0), (rangeset1, value1), ...]
+            try:
+                for rngset, _ in rngsetlist:
+                    rng.difference_update(rngset)
+                    if rng.isempty():
+                        return
+            except TypeError:
+                continue
+        # now that we can be confident the given range doesn't overlap any existing ranges,
+        # add it as normal
+        self.add(rng, value)
 
     def update(self, iterable: Union['RangeDict', dict[Rangelike, V], Iterable[tuple[Rangelike, V]]]) -> None:
         """
@@ -764,6 +841,19 @@ class RangeDict:
         """ Helper method to gnomesort all _LinkedLists-of-RangeSets. """
         for linkedlist in self._rangesets:
             linkedlist.gnomesort()
+
+    def _coalesce_infinite_ranges(self) -> None:
+        """
+        Helper method, intended for internal use only
+        If any element of _rangesets ends up equal to Range(-inf, inf) due to some weird
+        addition operation, then sorts that infinite range to the end of _rangesets.
+        """
+        def __condition(rngsets):
+            return len(rngsets) == 1 and all(rngset.containseverything() for rngset, _ in rngsets)
+        if any(__condition(r) for r in self._rangesets):
+            self._rangesets = _LinkedList(
+                [r for r in self._rangesets if not __condition(r)] + [r for r in self._rangesets if __condition(r)]
+            )
 
     def __setitem__(self, key: Rangelike, value: V):
         """

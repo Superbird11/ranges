@@ -393,6 +393,13 @@ class RangeSet(Iterable):
         """
         return self._ranges.first.value.start == -Inf or self._ranges.last.value.end == Inf
 
+    def containseverything(self) -> bool:
+        """
+        Returns True if this RangeSet contains all elements
+        :return: whether this RangeSet is infinite and its complement is empty
+        """
+        return self.isinfinite() and self.complement().isempty()
+
     @staticmethod
     def _merge_ranges(ranges: Iterable[Range]) -> _LinkedList[Range]:
         """
