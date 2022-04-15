@@ -30,7 +30,6 @@ author = 'Louis Jacobowitz'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    # 'sphinx.ext.autosummary',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -48,7 +47,7 @@ autodoc_typehints_format = 'short'
 autodoc_preserve_defaults = True
 
 autodoc_default_options = {
-    'members': True,
+    'members': 'True',
     'special-members': '__init__',
 }
 
