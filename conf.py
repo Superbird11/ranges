@@ -22,6 +22,7 @@ project = 'python-ranges'
 copyright = '2022, Louis Jacobowitz'
 author = 'Louis Jacobowitz'
 
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 
