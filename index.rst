@@ -8,7 +8,7 @@
 
 .. toctree::
 
-   ranges
+
 
 .. automodule:: ranges
    :members:
