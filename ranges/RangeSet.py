@@ -137,6 +137,7 @@ class RangeSet(Iterable):
         Raises a `TypeError` if the argument is not iterable.
 
         This method works identically to `.add()` for RangeSets only.
+
         :param iterable: iterable containing Rangelike objects to add to this RangeSet
         """
         self._ranges = RangeSet._merge_ranges(
@@ -150,6 +151,7 @@ class RangeSet(Iterable):
         This method will only remove a single RangeSet (or Range) from this
         RangeSet at a time. To remove a list of Range-like objects from this
         RangeSet, use .difference_update() instead.
+
         :param rng: Rangelike to remove from this RangeSet.
         """
         # be lazy and do O(n^2) erasure
@@ -197,6 +199,7 @@ class RangeSet(Iterable):
         Return a new RangeSet containing the ranges that are in this RangeSet
         but not in the other given RangeSet or list of RangeSets. This
         RangeSet is not modified in the process.
+
         :param rng_set: A rangelike object to take difference with, or an iterable of Rangelike objects
             to take difference with all of which.
         :return: a RangeSet identical to this one except with the given argument removed from it.
@@ -211,6 +214,7 @@ class RangeSet(Iterable):
 
         If an error occurs while trying to do this, then this RangeSet
         remains unchanged.
+
         :param rng_set: A rangelike object to take difference with, or an iterable of Rangelike objects
             to take difference with all of which.
         """
@@ -222,6 +226,7 @@ class RangeSet(Iterable):
         RangeSet and the given Range or RangeSet - that is, containing
         only the elements shared between this RangeSet and the given
         RangeSet.
+
         :param rng_set: A rangelike, or iterable containing rangelikes, to find intersection with
         :return: a RangeSet identical to this one except with all values not overlapping the given argument removed.
         """
@@ -238,6 +243,7 @@ class RangeSet(Iterable):
         Updates this RangeSet to contain only the intersections between
         this RangeSet and the given Range or RangeSet, removing the parts
         of this RangeSet's ranges that do not overlap the given RangeSet
+
         :param rng_set: A rangelike, or iterable containing rangelikes, to find intersection with
         """
         self._ranges = self.intersection(rng_set)._ranges
@@ -246,6 +252,7 @@ class RangeSet(Iterable):
         """
         Returns a new RangeSet containing the overlap between this RangeSet and the
         given RangeSet
+
         :param rng_set: A rangelike, or iterable of rangelikes, to find union with
         :return: a RangeSet identical to this one but also including all elements in the given argument.
         """
@@ -259,6 +266,7 @@ class RangeSet(Iterable):
         Updates this RangeSet to add all the ranges in the given RangeSet, so
         that this RangeSet now contains the union of its old self and the
         given RangeSet.
+
         :param rng_set: A rangelike, or iterable of rangelikes, to find union with
         """
         # convert to RangeSet
@@ -271,6 +279,7 @@ class RangeSet(Iterable):
         Returns a new RangeSet containing the symmetric difference between this
         RangeSet  and the given Range or RangeSet - everything contained by
         this RangeSet or the given RangeSet, but not both.
+
         :param rng_set: A rangelike, or iterable of rangelikes, to find symmetric difference with
         :return: A RangeSet containing all values in either this or the given argument, but not both
         """
@@ -287,6 +296,7 @@ class RangeSet(Iterable):
         Update this RangeSet to contain the symmetric difference between it and
         the given Range or RangeSet, by removing the parts of the given RangeSet
         that overlap with this RangeSet from this RangeSet.
+
         :param rng_set: A rangelike, or iterable of rangelikes, to find symmetric difference with
         """
         # the easiest way to do this is just to do regular symmetric_difference and then copy the result
@@ -297,6 +307,7 @@ class RangeSet(Iterable):
         """
         Returns `True` if there is no overlap between this RangeSet and the
         given RangeSet.
+
         :param other: a rangelike, or iterable of rangelikes, to check if overlaps this RangeSet
         :return: False the argument (or any element of an iterable argument) overlap this Rangeset, or True otherwise
         """
@@ -330,6 +341,7 @@ class RangeSet(Iterable):
         contain some part of it.
 
         Otherwise, raises an `IndexError`.
+
         :param item: item to search for in this RangeSet
         :return: if item is a single element, then the Range containing it. If item is iterable,
             then a RangeSet containing only Ranges containing items.
@@ -354,6 +366,7 @@ class RangeSet(Iterable):
     def ranges(self) -> list[Range]:
         """
         Returns a `list` of the Range objects that this RangeSet contains
+
         :return: the Ranges that make up this RangeSet
         """
         return list(iter(self._ranges))
@@ -367,6 +380,7 @@ class RangeSet(Iterable):
     def complement(self) -> 'RangeSet':
         """
         Returns a RangeSet containing all items not present in this RangeSet
+
         :return: the complement of this RangeSet
         """
         return RangeSet(Range()) - self
@@ -374,6 +388,7 @@ class RangeSet(Iterable):
     def isempty(self) -> bool:
         """
         Returns True if this RangeSet contains no values, and False otherwise
+
         :return: whether this RangeSet is empty
         """
         return self._ranges.isempty() or all(r.isempty() for r in self._ranges)
@@ -381,6 +396,7 @@ class RangeSet(Iterable):
     def copy(self) -> 'RangeSet':
         """
         Returns a shallow copy of this RangeSet
+
         :return: a shallow copy of this RangeSet
         """
         return RangeSet(self)
@@ -389,6 +405,7 @@ class RangeSet(Iterable):
         """
         Returns True if this RangeSet has a negative bound of -Inf or a positive bound of +Inf,
         and False otherwise
+
         :return: whether either furthest bound of this RangeSet is infinite
         """
         return self._ranges.first.value.start == -Inf or self._ranges.last.value.end == Inf
@@ -396,6 +413,7 @@ class RangeSet(Iterable):
     def containseverything(self) -> bool:
         """
         Returns True if this RangeSet contains all elements
+
         :return: whether this RangeSet is infinite and its complement is empty
         """
         return self.isinfinite() and self.complement().isempty()
@@ -405,6 +423,7 @@ class RangeSet(Iterable):
         """
         Compresses all of the ranges in the given iterable, and
         returns a _LinkedList containing them.
+
         :param ranges: iterable containing ranges to merge
         :return: a _LinkedList containing ranges, merged together.
         """
@@ -433,6 +452,7 @@ class RangeSet(Iterable):
         Converts the given argument to a RangeSet. This mainly exists to increase performance
         by not duplicating things that are already RangeSets, and for the sake of graceful
         error handling.
+
         :param other: Same as arguments for RangeSet's constructor
         :return: the given RangeSet, if `other` is a RangeSet, or a RangeSet constructed from it otherwise
         """
@@ -451,6 +471,7 @@ class RangeSet(Iterable):
         item).
         Returns false otherwise.
         A RangeSet will always contain itself.
+
         :param item: item to check if is contained in this RangeSet
         :return: whether the item is present in this RangeSet
         """
@@ -472,6 +493,7 @@ class RangeSet(Iterable):
     def __invert__(self) -> 'RangeSet':
         """
         Equivalent to self.complement()
+
         :return: a RangeSet containing everything that is not in this RangeSet
         """
         return self.complement()
@@ -481,6 +503,7 @@ class RangeSet(Iterable):
         Returns True if this RangeSet's ranges exactly match the other
         RangeSet's ranges, or if the given argument is a Range and this
         RangeSet contains only one identical Range
+
         :param other: other object to check equality with
         :return: whether this Rangeset equals the given object
         """
@@ -496,6 +519,7 @@ class RangeSet(Iterable):
         """
         Returns an ordering-based comparison based on the lowest ranges in
         self and other.
+
         :param other: other object to compare with
         :return: True if this RangeSet should be ordered before the other object, False otherwise
         """
@@ -515,6 +539,7 @@ class RangeSet(Iterable):
         """
         Returns an ordering-based comparison based on the lowest ranges in
         self and other.
+
         :param other: other object to compare with
         :return: True if this RangeSet should be ordered after the other object, False otherwise
         """

@@ -9,7 +9,7 @@ V = TypeVar('V', bound=Any)
 
 
 class RangeDict:
-    """
+    """ RangeDict(self, iterable, *, identity=False)
     A class representing a dict-like structure where continuous ranges
     correspond to certain values. For any item given to lookup, the
     value obtained from a RangeDict will be the one corresponding to
@@ -132,7 +132,7 @@ class RangeDict:
 
     def __init__(self, iterable: Union['RangeDict', dict[Rangelike, V], Iterable[tuple[Rangelike, V]]] = _sentinel,
                  *, identity=False):
-        """
+        """ __init__(iterable, *, identity=False)
         Initialize a new RangeDict from the given iterable. The given iterable
         may be either a RangeDict (in which case, a copy will be created),
         a regular dict with all keys able to be converted to Ranges, or an
@@ -206,6 +206,7 @@ class RangeDict:
         instead. Using this method instead will produce a `TypeError`.
 
         If an empty Range is given, then this method does nothing.
+
         :param rng: Rangekey to add
         :param value: value to add corresponding to the given Rangekey
         """
@@ -361,6 +362,7 @@ class RangeDict:
         Adds the contents of the given iterable (either another RangeDict, a
         `dict` mapping Range-like objects to values, or a list of 2-tuples
         `(range-like, value)`) to this RangeDict.
+
         :param iterable: An iterable containing keys and values to add to this RangeDict
         """
         # coerce to RangeDict and add that
@@ -394,6 +396,7 @@ class RangeDict:
         usually easier. This method is mainly used internally.
 
         Raises a `KeyError` if the desired item is not found.
+
         :param item: item to search for
         :return: a 4-tuple (keys with same value, containing RangeSet, containing Range, value)
         """
@@ -423,6 +426,7 @@ class RangeDict:
         same value, this list will contain all of them.
 
         Raises a `KeyError` if the given item is not found.
+
         :param item: item to search for
         :return: all RangeSets in this RangeDict that correspond to the same value as the given item
         """
@@ -438,6 +442,7 @@ class RangeDict:
         value, use `.getrangesets()` instead.
 
         Raises a `KeyError` if the given item is not found.
+
         :param item: item to search for
         :return: the RangeSet key containing the given item
         """
@@ -453,6 +458,7 @@ class RangeDict:
         use `.getrangeset()` instead.
 
         Raises a `KeyError` if the given item is not found.
+
         :param item: item to search for
         :return: the Range most directly containing the given item
         """
@@ -467,6 +473,7 @@ class RangeDict:
         Like Python's built-in `dict`, if `default` is given, returns that if
         `item` is not found.
         Otherwise, raises a `KeyError`.
+
         :param item: item to search for
         :param default: optionally, a value to return, if item is not found
             (if not provided, raises a KeyError if not found)
@@ -500,6 +507,7 @@ class RangeDict:
         `.getoverlaprangesets()`
         to isolate just one of those return values is
         usually easier. This method is mainly used internally.
+
         :param rng: Rangelike to search for
         :return: a list of 3-tuples (Rangekeys with same value, containing RangeSet, value)
         """
@@ -519,6 +527,7 @@ class RangeDict:
         """
         Returns a list of values corresponding to every distinct
         rangekey of this RangeDict that overlaps the given range.
+
         :param rng: Rangelike to search for
         :return: a list of values corresponding to each rangekey intersected by rng
         """
@@ -528,6 +537,7 @@ class RangeDict:
         """
         Returns a list of all rangekeys in this RangeDict that intersect with
         the given range.
+
         :param rng: Rangelike to search for
         :return: a list of all RangeSet rangekeys intersected by rng
         """
@@ -537,6 +547,7 @@ class RangeDict:
         """
         Returns a list of RangeSets corresponding to the same value as every
         rangekey that intersects the given range.
+
         :param rng: Rangelike to search for
         :return: a list lists of rangesets that correspond to the same values as every rangekey intersected by rng
         """
@@ -548,6 +559,7 @@ class RangeDict:
 
         Raises a `KeyError` if the given value is not corresponded to by
         any RangeSets in this RangeDict.
+
         :param value: value to search for
         :return: a list of rangekeys that correspond to the given value
         """
@@ -565,6 +577,7 @@ class RangeDict:
         Returns the original, overwritten value.
 
         If the given item is not found, raises a `KeyError`.
+
         :param item: item to search for
         :param new_value: value to set for all rangekeys sharing the same value as item corresponds to
         :return: the previous value those rangekeys corresponded to
@@ -582,6 +595,7 @@ class RangeDict:
         to the given `new_value` instead.
 
         Raises a `KeyError` if the given `old_value` isn't found.
+
         :param old_value: value to change for all keys that correspond to it
         :param new_value: value to replace it with
         """
@@ -618,6 +632,7 @@ class RangeDict:
         `.poprangesets()` to get the single item of interest.
 
         Raises a KeyError if the desired item is not found.
+
         :param item: item to search for
         :return: a 4-tuple (keys with same value, containing RangeSet, containing Range, value)
         """
@@ -652,6 +667,7 @@ class RangeDict:
         instead.
 
         Raises a `KeyError` if the given item is not found.
+
         :param item: item to search for
         :return: all RangeSets in this RangeDict that correspond to the same value as the given item
         """
@@ -668,6 +684,7 @@ class RangeDict:
         `.remove()` instead.
 
         Raises a `KeyError` if the given item is not found.
+
         :param item: item to search for
         :return: the RangeSet key containing the given item
         """
@@ -684,6 +701,7 @@ class RangeDict:
         `.remove()` instead.
 
         Raises a `KeyError` if the given item is not found.
+
         :param item: item to search for
         :return: the Range containing the given item
         """
@@ -699,6 +717,7 @@ class RangeDict:
         `dict.pop()`, if default is given, then if the item is not found,
         returns that instead.
         Otherwise, raises a `KeyError`.
+
         :param item: item to search for
         :param default: optionally, a value to return, if item is not found
             (if not provided, raises a KeyError if not found)
@@ -716,6 +735,7 @@ class RangeDict:
         Removes all ranges corresponding to the given value from this RangeDict,
         as well as the value itself. Returns a list of all the RangeSets of
         various types that corresponded to the given value.
+
         :param value: value to purge
         :return: all RangeSets in this RangeDict that correspond to the given value
         """
@@ -767,6 +787,7 @@ class RangeDict:
 
         Afterwards, empty ranges, and values with no remaining corresponding
         ranges, will be automatically removed.
+
         :param rng: Range to remove as rangekeys from this dict
         """
         # no mutation unless the operation is successful
@@ -800,6 +821,7 @@ class RangeDict:
           of their lower bounds.
 
         This function is analagous to Python's built-in `dict.keys()`
+
         :return: a list of RangeSet keys in this RangeDict
         """
         return [rngset for rngsetlist in self._rangesets for rngset, value in rngsetlist]
@@ -812,6 +834,7 @@ class RangeDict:
         oldest values being listed first.
 
         This function is synonymous to Python's built-in `dict.values()`
+
         :return: a list of values contained in this RangeDict
         """
         return list(self._values.keys())
@@ -882,6 +905,7 @@ class RangeDict:
         """
         Returns the number of values, not the number of unique Ranges,
         since determining how to count Ranges is Hard
+
         :return: the number of unique values contained in this RangeDict
         """
         return len(self._values)
@@ -891,6 +915,7 @@ class RangeDict:
         Tests whether this RangeDict is equal to the given RangeDict (has the same keys and values).
         Note that this always tests equality for values, not identity, regardless of whether this
         RangeDict was constructed in 'strict' mode.
+
         :param other: RangeDict to compare against
         :return: True if this RangeDict is equal to the given RangeDict, False otherwise
         """

@@ -12,5 +12,9 @@ python_ranges.egg-info/
 pip-selfcheck.json
 pyvenv.cfg
 
+Makefile
+make.bat
+_build/
+
 **.pyc
 deploy.sh
