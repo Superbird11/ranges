@@ -10,7 +10,7 @@ _sentinel = object()
 
 
 class Range:
-    """
+    """ Range(self, *args)
     A class representing a range from a start value to an end value.
     The start and end need not be numeric, but they must be comparable.
     A Range is immutable, but not strictly so - nevertheless, it should
@@ -49,7 +49,8 @@ class Range:
           >>> print(e)  # [3, 5)
           >>> print(f)  # (3, 5]
 
-        4. From the keyword arguments `start` and/or `end`. `start` and `end`
+        4. From the keyword arguments `start` and/or `end`.
+          `start` and `end`
           may be anything so long as the condition `start <= end` is True and
           does not error. If not provided, `start` is set to -infinity by
           default, and `end` is set to +infinity by default. If any of the
@@ -130,7 +131,7 @@ class Range:
     def __init__(self, *args: Union['Range', RangelikeString, T],
                  start: T = _sentinel, end: T = _sentinel,
                  include_start: bool = True, include_end: bool = False):
-        """
+        """ __init__(self, *args)
         Constructs a new Range from `start` to `end`, or from an existing range.
         Is inclusive on the lower bound and exclusive on the upper bound by
         default, but can be made differently exclusive by setting the
@@ -240,6 +241,7 @@ class Range:
         """
         returns `False` if this range overlaps with the given range,
         and `True` otherwise.
+
         :param rng: range to check disjointness with
         :return: False if this range overlaps with the given range, True otherwise
         """
@@ -269,6 +271,7 @@ class Range:
         simply put both this Range and the given Range into a ranges.RangeSet).
 
         If the given range is actually a ranges.RangeSet, then returns a ranges.RangeSet.
+
         :param rng: range to find union with
         :return: A rangelike containing the union of this and the given rangelike, if they overlap or the given
             rangelike is a RangeSet.
@@ -298,6 +301,7 @@ class Range:
         the given range, or `None` if the ranges don't overlap at all.
 
         If the given range is actually a ranges.RangeSet, then returns a ranges.RangeSet.
+
         :param rng: range to find intersection with
         :return: a rangelike containing the intersection between this and the given rangelike
         """
@@ -343,6 +347,7 @@ class Range:
 
         If the given range is actually a ranges.RangeSet, then returns a ranges.RangeSet
         no matter what.
+
         :param rng: rangelike to find the difference with
         :return: a rangelike containing the difference between this and the given rangelike
         """
@@ -398,6 +403,7 @@ class Range:
 
         If the given range is actually a ranges.RangeSet, then returns a ranges.RangeSet
         no matter what.
+
         :param rng: rangelike object to find the symmetric difference with
         :return: a rangelike object containing the symmetric difference between this and the given rangelike
         """
@@ -436,6 +442,7 @@ class Range:
     def complement(self) -> 'ranges.RangeSet':
         """
         Returns a RangeSet containing all items not present in this Range
+
         :return: the complement of this Range
         """
         return ranges.RangeSet(Range()) - self
@@ -444,6 +451,7 @@ class Range:
         """
         If this Range includes the given value, then return the value. Otherwise, return whichever
         bound is closest to the value.
+
         :param value: value to restrict to the borders of this range
         :return: the given value if it is in the range, or whichever border is closest to the value otherwise
         """
@@ -463,6 +471,7 @@ class Range:
 
         In essence, will only return `True` if `start == end` and either end
         is exclusive.
+
         :return: True if this range contains no values. False otherwise
         """
         return self.start == self.end and (not self.include_start or not self.include_end)
@@ -470,6 +479,7 @@ class Range:
     def copy(self) -> 'Range':
         """
         Copies this range, without modifying it.
+
         :return: a copy of this object, identical to calling `Range(self)`
         """
         return Range(self)
@@ -491,6 +501,7 @@ class Range:
         `ArithmeticError`, or `ValueError` on failed subtraction. If not,
         whatever exception they raise will improperly handled by this method,
         and will thus be raised instead.
+
         :return: `end` - `start` for this range
         """
         # try normally
@@ -510,6 +521,7 @@ class Range:
     def isinfinite(self) -> bool:
         """
         Returns True if this Range has a negative bound equal to -Inf or a positive bound equal to +Inf
+
         :return True if this Range has a negative bound equal to -Inf or a positive bound equal to +Inf
         """
         return self.start == -Inf or self.end == Inf
@@ -519,6 +531,7 @@ class Range:
         Returns True if the given item is greater than or equal to this Range's start,
         depending on whether this Range is set to include the start.
         If the given item is a Range, tests that range's .start.
+
         :param item: item to test against start
         :return: True if the given item is greater than or equal to this Range's start
         """
@@ -537,6 +550,7 @@ class Range:
         Returns True if the given item is less than or equal to this Range's end,
         depending on whether this Range is set to include the end.
         If the given item is a Range, tests that range's .end.
+
         :param item: item to test against end
         :return: True if the given item is less than or equal to this Range's end
         """
@@ -556,6 +570,7 @@ class Range:
         inclusivity at either end. Returns `True` if everything is the same, or
         `False` otherwise. If the other object is a RangeSet, uses the other object's
         __eq__() instead. Always returns False if the other object is not rangelike.
+
         :return: True if the given object is equal to this Range.
         """
         if isinstance(obj, ranges.RangeSet):
@@ -576,6 +591,7 @@ class Range:
         2. include_start (inclusive < exclusive)
         3. end
         4. include_end (exclusive < inclusive)
+
         :return: True if this range should be ordered before the given rangelike object, False otherwise
         """
         if isinstance(obj, ranges.RangeSet):
@@ -602,6 +618,7 @@ class Range:
         2. include_start (inclusive < exclusive)
         3. end
         4. include_end (exclusive < inclusive)
+
         :return: True if this range should be ordered after the given rangelike object, False otherwise
         """
         if isinstance(obj, ranges.RangeSet):
@@ -624,6 +641,7 @@ class Range:
         """
         Used for ordering, not for subranging/subsetting. See docstrings for
         __eq__() and __gt__().
+
         :return: True if this range is equal to or should be ordered after the given rangelike object. False otherwise.
         """
         return self > obj or self == obj
@@ -632,6 +650,7 @@ class Range:
         """
         Used for ordering, not for subranging/subsetting. See docstrings for
         __eq__() and __lt__().
+
         :return: True if this range is equal to or should be ordered before the given rangelike object. False otherwise.
         """
         return self < obj or self == obj
@@ -639,6 +658,7 @@ class Range:
     def __ne__(self, obj: Rangelike) -> bool:
         """
         See docstring for __eq__(). Returns the opposite of that.
+
         :return: False if this range is equal to the given rangelike object. True otherwise.
         """
         return not self == obj
@@ -646,6 +666,7 @@ class Range:
     def __or__(self, other: Rangelike) -> Union[Rangelike, None]:
         """
         Equivalent to self.union(other)
+
         :param other: rangelike to union
         :return: a rangelike object containing both this range and the given rangelike object
         """
@@ -654,6 +675,7 @@ class Range:
     def __and__(self, other: Rangelike) -> Union[Rangelike, None]:
         """
         Equivalent to self.intersect(other)
+
         :param other: rangelike to intersect
         :return: a rangelike object containing the overlap between this range and the given rangelike object
         """
@@ -662,6 +684,7 @@ class Range:
     def __sub__(self, other: Rangelike) -> Union[Rangelike, None]:
         """
         Equivalent to self.difference(other)
+
         :param other: rangelike to find difference with
         :return: a rangelike object containing everything in this range but not in the given rangelike object
         """
@@ -670,10 +693,19 @@ class Range:
     def __xor__(self, other: Rangelike) -> Union[Rangelike, None]:
         """
         Equivalent to self.symmetric_difference(other)
+
         :param other: rangelike to find symmetric difference with
         :return: a rangelike object containing everything in either this range or the given rangelike, but not both
         """
         return self.symmetric_difference(other)
+
+    def __invert__(self) -> 'RangeSet':
+        """
+        Equivalent to self.complement()
+
+        :return: a RangeSet containing everything that is not in this Range
+        """
+        return self.complement()
 
     def __contains__(self, item: T) -> bool:
         """
@@ -686,6 +718,7 @@ class Range:
         if it isn't.
 
         A Range always contains itself.
+
         :param item: item to check if is contained
         :return: True if the item is within the bounds of this range. False otherwise
         """

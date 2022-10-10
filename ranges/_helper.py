@@ -201,7 +201,7 @@ class _LinkedList(Iterable[T]):
             raise IndexError(f"List index {index} out of range")
         elif index <= self._length // 2:
             cur = self.first
-            for _ in range(index - 1):
+            for _ in range(index):
                 cur = cur.next
             return cur
         else:
@@ -330,6 +330,11 @@ class _LinkedList(Iterable[T]):
             self.pop_node(node)
         else:
             raise ValueError(f"{value} is not in list")
+
+    def clear(self):
+        self.first = None
+        self.last = None
+        self._length = 0
 
     def get(self, index):
         return self.node_at(index).value

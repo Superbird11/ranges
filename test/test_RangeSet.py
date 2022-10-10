@@ -415,8 +415,10 @@ def test_rangeset_symdiff(rngset, to_symdiff, before, after, error_type):
 )
 def test_rangeset_complement(rngset, expected):
     assert(expected == rngset.complement())
+    assert(expected == ~rngset)
     rngset.popempty()
     assert(rngset == expected.complement())
+    assert(rngset == ~expected)
 
 
 @pytest.mark.parametrize(

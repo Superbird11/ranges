@@ -203,6 +203,7 @@ def test_rangedict_constructor(iterable, strr, reprr, isempty, length, error_typ
         # For RangeDict, nothing happens - because the RangeSet gets cleaved in half and then gets sewed back together
         # immediately.
         (RangeDict({"[1, 3)": 1}), Range(2, 2), 2, RangeDict({"[1, 3)": 1}), RangeDict({"[1, 3)": 1}), None),
+        (RangeDict({"[1, 3)": 1}), Range(4, 4), 2, RangeDict({"[1, 3)": 1}), RangeDict({"[1, 3)": 1}), None),
         # multiple-element RangeDicts
         (RangeDict({("[1, 3)", Range('a', 'c')): 1}), Range(4, 6), 2,
             RangeDict({("[1, 3)", Range('a', 'c')): 1}), RangeDict({("[1, 3)", Range('a', 'c')): 1, "[4, 6)": 2}),
@@ -213,6 +214,16 @@ def test_rangedict_constructor(iterable, strr, reprr, isempty, length, error_typ
         (RangeDict({("[1, 4)", Range('a', 'c')): 1}), RangeSet("[0, 2]", "[3, 5]"), 2,
             RangeDict({("[1, 4)", Range('a', 'c')): 1}),
             RangeDict({("(2, 3)", Range('a', 'c')): 1, ("[0, 2]", "[3, 5]"): 2}), None),
+        # adding an infinite range (should always replace the entire contents)
+        (RangeDict(), Range(), 1, RangeDict(), RangeDict({Range(): 1}), None),  # to empty
+        (RangeDict({"[1, 3)": 1}), Range(), 1, RangeDict({"[1, 3)": 1}), RangeDict({Range(): 1}), None),
+        (RangeDict({"[1, 3)": 1}), Range(), 2, RangeDict({"[1, 3)": 1}), RangeDict({Range(): 2}), None),
+        (RangeDict({Range('a', 'c'): 1}), Range(), 2, RangeDict({Range('a', 'c'): 1}), RangeDict({Range(): 2}), None),
+        (RangeDict({"[1, 3)": 1, Range('a', 'c'): 2}), Range(), 3, RangeDict({"[1, 3)": 1, Range('a', 'c'): 2}),
+         RangeDict({Range(): 3}), None),
+        (RangeDict({"[1, 3)": 1, Range('a', 'c'): 2}), Range(), 2, RangeDict({"[1, 3)": 1, Range('a', 'c'): 2}),
+         RangeDict({Range(): 2}), None),
+        (RangeDict({Range(): 1}), Range(), 2, RangeDict({Range(): 1}), RangeDict({Range(): 2}),  None),
         # error conditions
         (RangeDict(), ["[1, 2)", Range('a', 'b')], 1, RangeDict(), "", TypeError),
         (RangeDict(), 1, 1, RangeDict(), "", ValueError),
@@ -233,6 +244,114 @@ def test_rangedict_add(rngdict, rng, value, before, after, error_type):
         copy_rngdict[rng] = value
         assert(after == rngdict)
         assert(after == copy_rngdict)
+
+
+@pytest.mark.parametrize(
+    "rngdict,rng,value,before,after,error_type", [
+        # add from nothing (same as tests for add())
+        (RangeDict(), Range(1, 2), 1, RangeDict(), RangeDict({"[1, 2)": 1}), None),
+        (RangeDict(), "[1, 2)", 1, RangeDict(), RangeDict({"[1, 2)": 1}), None),
+        (RangeDict(), RangeSet("[1, 2)"), 1, RangeDict(), RangeDict({"[1, 2)": 1}), None),
+        (RangeDict(), RangeSet("[1, 2)", "[3, 4)"), 1, RangeDict(), RangeDict({("[1, 2)", "[3, 4)"): 1}), None),
+        (RangeDict(), ["[1, 2)", "[3, 4)"], 1, RangeDict(), RangeDict({("[1, 2)", "[3, 4)"): 1}), None),
+        (RangeDict(), Range("a", "b", include_end=True, include_start=False), 1,
+         RangeDict(), RangeDict({Range('a', 'b', include_end=True, include_start=False): 1}), None),
+        (RangeDict(), Range(1, 2), "one", RangeDict(), RangeDict({"[1, 2)": "one"}), None),
+        (RangeDict(), Range(1, 2), datetime.date(2019, 6, 3),
+         RangeDict(), RangeDict({"[1, 2)": datetime.date(2019, 6, 3)}), None),
+        # add to already-existing single-element RangeDict
+        (RangeDict({"[1, 2)": 1}), Range(3, 4), 1,
+         RangeDict({"[1, 2)": 1}), RangeDict({("[1, 2)", "[3, 4)"): 1}), None),  # non-overlapping
+        (RangeDict({"[1, 2)": 1}), Range(3, 4), 2,
+         RangeDict({"[1, 2)": 1}), RangeDict({"[1, 2)": 1, "[3, 4)": 2}), None),
+        (RangeDict({"[1, 2)": 1}), Range(2, 3), 1, RangeDict({"[1, 2)": 1}), RangeDict({"[1, 3)": 1}), None),
+        (RangeDict({"[1, 2)": 1}), Range(1, 2), 1, RangeDict({"[1, 2)": 1}), RangeDict({"[1, 2)": 1}), None),
+        (RangeDict({"[1, 2)": 1}), Range(1, 2), 2, RangeDict({"[1, 2)": 1}), RangeDict({"[1, 2)": 1}), None),
+        (RangeDict({"[1, 3)": 1}), Range(2, 4), 2,
+         RangeDict({"[1, 3)": 1}), RangeDict({"[1, 3)": 1, "[3, 4)": 2}), None),
+        (RangeDict({"[1, 2)": 1}), Range('a', 'b'), 2,
+         RangeDict({"[1, 2)": 1}), RangeDict({"[1, 2)": 1, Range('a', 'b'): 2}), None),
+        (RangeDict({"[1, 2)": 1}), Range('a', 'b'), 1,
+         RangeDict({"[1, 2)": 1}), RangeDict({("[1, 2)", Range('a', 'b')): 1}), None),
+        # adddefault() to an already-infinite set should do nothing
+        (RangeDict({Range(): 1}), Range(2, 3), 2, RangeDict({"[-inf, inf)": 1}), RangeDict({"[-inf, inf)": 1}), None),
+        (RangeDict({Range(): 1}), RangeSet("[2, 3)", "[4, 5)"), 2,
+         RangeDict({"[-inf, inf)": 1}), RangeDict({"[-inf, inf)": 1}), None),
+        (RangeDict({Range(): 1}), Range("a", "b"), 2,
+         RangeDict({"[-inf, inf)": 1}), RangeDict({"[-inf, inf)": 1}), None),
+        (RangeDict({Range(): 1}), RangeSet(Range("a", "b"), Range("c", "d")), 2,
+         RangeDict({"[-inf, inf)": 1}), RangeDict({"[-inf, inf)": 1}), None),
+        # however, adddefault() to a set of infinite numbers and nothing else should work normally
+        (RangeDict({Range(float('-inf'), float('inf')): 1}), Range("a", "b"), 2,
+         RangeDict({"[-inf, inf)": 1}), RangeDict({"[-inf, inf)": 1, Range('a', 'b'): 2}), None),
+        (RangeDict({Range(float('-inf'), float('inf')): 1}), RangeSet(Range("a", "b"), Range("c", "d")), 2,
+         RangeDict({"[-inf, inf)": 1}), RangeDict({"[-inf, inf)": 1, (Range('a', 'b'), Range('c', 'd')): 2}), None),
+        (RangeDict({Range(float('-inf'), float('inf')): 1}), Range(1, 2), 2,
+         RangeDict({"[-inf, inf)": 1}), RangeDict({"[-inf, inf)": 1}), None),
+        # adddefault() empty range should do nothing just as before
+        (RangeDict({"[1, 3)": 1}), Range(2, 2), 2, RangeDict({"[1, 3)": 1}), RangeDict({"[1, 3)": 1}), None),
+        (RangeDict({"[1, 3)": 1}), Range(4, 4), 2, RangeDict({"[1, 3)": 1}), RangeDict({"[1, 3)": 1}), None),
+        # multiple-element RangeDicts
+        (RangeDict({("[1, 3)", Range('a', 'c')): 1}), Range(4, 6), 2,
+         RangeDict({("[1, 3)", Range('a', 'c')): 1}), RangeDict({("[1, 3)", Range('a', 'c')): 1, "[4, 6)": 2}),
+         None),
+        (RangeDict({("[1, 3)", Range('a', 'c')): 1}), Range(2, 6), 2,
+         RangeDict({("[1, 3)", Range('a', 'c')): 1}), RangeDict({("[1, 3)", Range('a', 'c')): 1, "[3, 6)": 2}),
+         None),
+        (RangeDict({("[1, 4)", Range('a', 'c')): 1}), RangeSet("[0, 2]", "[3, 5]"), 2,
+         RangeDict({("[1, 4)", Range('a', 'c')): 1}),
+         RangeDict({("[1, 4)", Range('a', 'c')): 1, ("[0, 1)", "[4, 5]"): 2}), None),
+        # adding an infinite range
+        (RangeDict(), Range(), 1, RangeDict(), RangeDict({Range(): 1}), None),  # to empty
+        (RangeDict({"[1, 3)": 1}), Range(), 1, RangeDict({"[1, 3)": 1}), RangeDict({Range(): 1}), None),  # match value
+        (RangeDict({"[1, 3)": 1}), Range(), 2, RangeDict({"[1, 3)": 1}),
+         RangeDict({"[1, 3)": 1, ("[-inf, 1)", "[3, inf)"): 2}), None),  # non-matching value, matching type
+        (RangeDict({Range('a', 'c'): 1}), Range(), 2, RangeDict({Range('a', 'c'): 1}),
+         RangeDict({Range('a', 'c'): 1, (Range(end='a'), Range(start='c')): 2}), None),
+        (RangeDict({"[1, 3)": 1, Range('a', 'c'): 2}), Range(), 3, RangeDict({"[1, 3)": 1, Range('a', 'c'): 2}),
+         RangeDict({"[1, 3)": 1, Range('a', 'c'): 2,   # should duplicate itself if necessary to fill the space
+                    (Range(end=1), Range(start=3), Range(end='a'), Range(start='c')): 3}), None),
+        (RangeDict({"[1, 3)": 1, Range('a', 'c'): 2}), Range(), 2, RangeDict({"[1, 3)": 1, Range('a', 'c'): 2}),
+         RangeDict({"[1, 3)": 1, Range('a', 'c'): 2,   # should duplicate but also merge
+                    (Range(end=1), Range(start=3)): 2, Range(end='a'): 2, Range(start='a'): 2}), None),
+        (RangeDict({Range(): 1}), Range(), 2, RangeDict({Range(): 1}), RangeDict({Range(): 1}),  None),  # inf to inf
+        # error conditions
+        (RangeDict(), ["[1, 2)", Range('a', 'b')], 1, RangeDict(), "", TypeError),
+        (RangeDict(), 1, 1, RangeDict(), "", ValueError),
+        (RangeDict(), "1, 2", 1, RangeDict(), "", ValueError),
+    ]
+)
+def test_rangedict_adddefault(rngdict, rng, value, before, after, error_type):
+    assert(before == rngdict)
+    if error_type is not None:
+        asserterror(error_type, rngdict.adddefault, (rng, value))
+        assert(before == rngdict)
+    else:
+        rngdict.adddefault(rng, value)
+        assert(after == rngdict)
+
+
+def test_rangedict_multi_infinity():
+    # add() and adddefault() shenanigans that can lead to multiple infinite ranges being present
+    rngdict = RangeDict({
+        Range(1, 3): 1,
+        Range('a', 'c'): 2,
+        Range((1,), (3,)): 2,
+    })
+    rngdict.adddefault(Range(), 2)
+    assert("{{[1, 3)}: 1, {[-inf, inf), [-inf, inf), [-inf, 1), [3, inf)}: 2}" == str(rngdict))
+    rngdict2 = RangeDict({
+        Range(end=3): 1,
+        Range(end='c'): 2,
+        Range(end=(3,)): 2,
+    })
+    rngdict2.add(Range(start='c'), 2)
+    rngdict2.add(Range(start=(3,)), 2)
+    assert("{{[-inf, 3)}: 1, {[-inf, inf), [-inf, inf)}: 2}" == str(rngdict2))
+    rngdict2[Range(start=3)] = 2
+    assert("{{[-inf, 3)}: 1, {[-inf, inf), [-inf, inf), [3, inf)}: 2}" == str(rngdict2))
+    rngdict2[Range(end=3)] = 2
+    assert("{{[-inf, inf), [-inf, inf), [-inf, inf)}: 2}" == str(rngdict2))
 
 
 @pytest.mark.parametrize(
