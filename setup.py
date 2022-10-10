@@ -11,6 +11,9 @@ with open("readme.md", "r") as fh:
         long_description=fh.read(),
         url="https://github.com/superbird11/ranges",
         packages=setuptools.find_packages(),
+        package_data={
+            "ranges": ["py.types"]
+        },
         classifiers=[
             "Programming Language :: Python :: 3",
             "License :: OSI Approved :: MIT License",
