@@ -12,7 +12,7 @@ with open("readme.md", "r") as fh:
         url="https://github.com/superbird11/ranges",
         packages=setuptools.find_packages(),
         package_data={
-            "ranges": ["py.types"]
+            "ranges": ["py.typed"]
         },
         classifiers=[
             "Programming Language :: Python :: 3",
