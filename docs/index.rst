@@ -6,8 +6,12 @@
 ``python-ranges`` - Continuous Range, RangeSet, and RangeDict data structures for Python
 ========================================================================================
 
-.. automodule:: ranges
-   :members:
+.. toctree::
+
+   Continuous ranges <about>
+   Ranges as a dictionary <dict>
+   Ranges as a set  <set>
+
 
 Indices and tables
 ==================
