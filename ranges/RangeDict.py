@@ -847,7 +847,7 @@ class RangeDict:
         that serve as keys, and the values to which they correspond.
         """
         self._rangesets = _LinkedList()
-        self._values = {}
+        self._values.clear()
 
     def copy(self) -> 'RangeDict':
         """
